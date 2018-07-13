@@ -1,4 +1,4 @@
-[![GoDoc](https://godoc.org/github.com/vrothberg/psgo?status.svg)](https://godoc.org/github.com/vrothberg/psgo/ps) [![Build Status](https://travis-ci.org/vrothberg/psgo.svg?branch=master)](https://travis-ci.org/vrothberg/psgo)
+[![GoDoc](https://godoc.org/github.com/containers/psgo?status.svg)](https://godoc.org/github.com/containers/psgo/ps) [![Build Status](https://travis-ci.org/containers/psgo.svg?branch=master)](https://travis-ci.org/containers/psgo)
 
 # psgo 
 A ps (1) AIX-format compatible golang library.  Please note, that the library is still under development.
