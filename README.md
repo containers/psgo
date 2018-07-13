@@ -13,7 +13,7 @@ This library aims to make things a bit more comfortable, especially for containe
  - `JoinNamespaceAndProcessInfo(pid, format string) ([]string, error)`
    - JoinNamespaceAndProcessInfo has the same semantics as ProcessInfo but joins the mount namespace of the specified pid before extracting data from /proc.  This way, we can extract the `/proc` data from a container without executing any command inside the container.
 
-A sample implementation using this API can be found [here](https://github.com/vrothberg/psgo/blob/master/). You can compile the sample `psgo` tool via `make build`.
+A sample implementation using this API can be found [here](https://github.com/containers/psgo/blob/master/psgo.go). You can compile the sample `psgo` tool via `make build`.
 
 ### Listing processes
 ```

@@ -6,8 +6,8 @@ import (
 	"os"
 	"text/tabwriter"
 
+	"github.com/containers/psgo/ps"
 	"github.com/sirupsen/logrus"
-	"github.com/vrothberg/psgo/ps"
 )
 
 func main() {
