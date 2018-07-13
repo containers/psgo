@@ -3,7 +3,7 @@ GO ?= go
 BUILD_DIR := ./bin
 BIN_DIR := /usr/local/bin
 NAME := psgo
-PROJECT := github.com/vrothberg/psgo
+PROJECT := github.com/containers/psgo
 
 GO_SRC=$(shell find . -name \*.go)
 
