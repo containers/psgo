@@ -1,6 +1,6 @@
 [![GoDoc](https://godoc.org/github.com/containers/psgo?status.svg)](https://godoc.org/github.com/containers/psgo/ps) [![Build Status](https://travis-ci.org/containers/psgo.svg?branch=master)](https://travis-ci.org/containers/psgo)
 
-# psgo 
+# psgo
 A ps (1) AIX-format compatible golang library.  Please note, that the library is still under development.
 
 The idea behind the library is to implement an easy to use way of extracting process-related data, just as ps (1) does. The problem when using ps (1) is that the ps format strings split columns with whitespaces, making the output nearly impossible to parse. It also adds some jitter as we have to fork.
@@ -18,11 +18,11 @@ A sample implementation using this API can be found [here](https://github.com/co
 ### Listing processes
 ```
 ./bin/psgo | head -n5
-USER                PID                 PPID                %CPU                ELAPSED              TTY                 TIME                COMMAND
-root                1                   0                   0.054               7h31m2.201990273s                        14.7s               systemd
-root                2                   0                   0.000               7h31m2.202357631s                        20ms                [kthreadd]
-root                4                   2                   0.000               7h31m2.20266881s                         0s                  [kworker/0:0H]
-root                6                   2                   0.000               7h31m2.202962506s                        0s                  [mm_percpu_wq]
+USER         PID     PPID    %CPU     ELAPSED              TTY      TIME        COMMAND
+root         1       0       0.064    6h3m27.677997443s    ?        13.98s      systemd
+root         2       0       0.000    6h3m27.678380128s    ?        20ms        [kthreadd]
+root         4       2       0.000    6h3m27.678701852s    ?        0s          [kworker/0:0H]
+root         6       2       0.000    6h3m27.678999508s    ?        0s          [mm_percpu_wq]
 ```
 
 ### Changing the output format
@@ -54,8 +54,7 @@ To demonstrate the usecase for containers, let's run a container and display the
 ```
 $ docker run -d --name foo alpine sleep 100
 $ docker inspect --format '{{.State.Pid}}' foo
-1377
-$ sudo ./bin/gops -pid 1377
-USER                PID                 PPID                %CPU                ELAPSED             TTY                 TIME                COMMAND
-root                1                   0                   0.044               1m7.984088557s                          30ms                sleep
+$ sudo ./bin/psgo -pid1377
+USER   PID   PPID   %CPU    ELAPSED         TTY   TIME   COMMAND
+root   1     0      0.193   25.959923679s   ?     50ms   sleep
 ```

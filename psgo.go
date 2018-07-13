@@ -33,7 +33,7 @@ func main() {
 		}
 	}
 
-	tw := tabwriter.NewWriter(os.Stdout, 20, 1, 3, ' ', 0)
+	tw := tabwriter.NewWriter(os.Stdout, 5, 1, 3, ' ', 0)
 	for _, d := range data {
 		fmt.Fprintln(tw, d)
 	}
