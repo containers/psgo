@@ -33,15 +33,11 @@ validate: $(GO_SRC)
 	test -z "$$($(GO) vet $$($(GO) list $(PROJECT)/...) 2>&1 | tee /dev/stderr)"
 
 .PHONY: test
-TESTCONTAINER := psgo-test
-test: build
-	$(BUILD_DIR)/$(NAME) > /dev/null
+test: test-integration
 
-	$(BUILD_DIR)/$(NAME) -format "pid,user" > /dev/null
-
-	sudo docker run --name $(TESTCONTAINER) -d alpine sleep 100
-	sudo docker inspect --format '{{.State.Pid}}' $(TESTCONTAINER) | xargs sudo $(BUILD_DIR)/$(NAME) -pid | grep "sleep"
-	sudo docker rm -f $(TESTCONTAINER)
+.PHONY: test-integration
+test-integration:
+	bats test/*.bats
 
 .PHONY: install
 install:
