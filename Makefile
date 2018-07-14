@@ -39,6 +39,10 @@ test: test-integration
 test-integration:
 	bats test/*.bats
 
+.PHONY: test-unit
+test-unit:
+	go test -v $(PROJECT)/ps
+
 .PHONY: install
 install:
 	sudo install -D -m755 $(BUILD_DIR)/$(NAME) $(BIN_DIR)
