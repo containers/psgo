@@ -17,8 +17,8 @@
 
 	run sudo ./bin/psgo -pid $PID -format "pid, args"
 	[ "$status" -eq 0 ]
-	[[ "${lines[0]}" == "PID   COMMAND" ]]
-	[[ ${lines[1]} == "1     sleep 100" ]]
+	[[ ${lines[0]} == "PID   COMMAND" ]]
+	[[ ${lines[1]} =~ "1     sleep 100" ]]
 
 	docker rm -f $ID
 }
