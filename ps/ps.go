@@ -306,6 +306,15 @@ func processDescriptors(formatDescriptors []aixFormatDescriptor, processes []*pr
 	return data, nil
 }
 
+// ListDescriptors returns a string slice of all supported AIX format
+// descriptors in the normal form.
+func ListDescriptors() (list []string) {
+	for _, d := range descriptors {
+		list = append(list, d.normal)
+	}
+	return
+}
+
 // JoinNamespaceAndProcessInfo has the same semantics as ProcessInfo but joins
 // the mount namespace of the specified pid before extracting data from `/proc`.
 func JoinNamespaceAndProcessInfo(pid, format string) ([]string, error) {
