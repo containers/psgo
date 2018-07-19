@@ -203,3 +203,21 @@
 	[[ ${lines[0]} =~ "VSZ" ]]
 	[[ ${lines[0]} =~ "SECCOMP" ]]
 }
+
+function is_labeling_enabled() {
+	if [ -e /usr/sbin/selinuxenabled ] && /usr/sbin/selinuxenabled; then
+			echo 1
+			return
+	fi
+	echo 0
+}
+
+@test "LABEL header" {
+	enabled=$(is_labeling_enabled)
+	if [[ "$enabled" -eq 0 ]]; then
+		skip "skip this test since labeling is not enabled."
+	fi
+	run ./bin/psgo -format "label"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} =~ "LABEL" ]]
+}

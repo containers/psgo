@@ -2,6 +2,7 @@ package ps
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/user"
 	"runtime"
@@ -150,6 +151,11 @@ var (
 			normal: "seccomp",
 			header: "SECCOMP",
 			procFn: processSECCOMP,
+		},
+		{
+			normal: "label",
+			header: "LABEL",
+			procFn: processLABEL,
 		},
 	}
 )
@@ -627,4 +633,20 @@ func processSECCOMP(p *process) (string, error) {
 	default:
 		return "?", nil
 	}
+}
+
+// processLABEL returns the process label of process p.
+func processLABEL(p *process) (string, error) {
+	data, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/attr/current", p.pid))
+	if err != nil {
+		if os.IsNotExist(err) {
+			// make sure the pid does not exist,
+			// could be system does not support labeling.
+			if _, err2 := os.Stat(fmt.Sprintf("/proc/%d", p.pid)); err2 != nil {
+				return "", errNoSuchPID
+			}
+		}
+		return "", err
+	}
+	return strings.Trim(string(data), "\x00"), nil
 }
