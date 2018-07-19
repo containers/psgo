@@ -405,10 +405,13 @@ func parseDescriptors(input string) ([]aixFormatDescriptor, error) {
 // lookupGID returns the textual group ID, if it can be optained, or the
 // decimal input representation otherwise.
 func lookupGID(gid string) (string, error) {
+	if gid == "0" {
+		return "root", nil
+	}
 	g, err := user.LookupGroupId(gid)
 	if err != nil {
 		switch err.(type) {
-		case user.UnknownGroupError:
+		case user.UnknownGroupIdError:
 			return gid, nil
 		default:
 			return "", err
