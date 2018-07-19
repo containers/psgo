@@ -159,13 +159,11 @@
 	[[ ${lines[0]} =~ "CAPABILITIES" ]]
 }
 
-
 @test "CAPPRM header" {
 	run ./bin/psgo -format "capprm"
 	[ "$status" -eq 0 ]
 	[[ ${lines[0]} =~ "CAPABILITIES" ]]
 }
-
 
 @test "CAPEFF header" {
 	run ./bin/psgo -format "capeff"
@@ -173,15 +171,20 @@
 	[[ ${lines[0]} =~ "CAPABILITIES" ]]
 }
 
-
 @test "CAPBND header" {
 	run ./bin/psgo -format "capbnd"
 	[ "$status" -eq 0 ]
 	[[ ${lines[0]} =~ "CAPABILITIES" ]]
 }
 
+@test "SECCOMP header" {
+	run ./bin/psgo -format "seccomp"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} =~ "SECCOMP" ]]
+}
+
 @test "ALL header" {
-	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capinh, capprm, capeff, capbnd"
+	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capinh, capprm, capeff, capbnd, seccomp"
 	[ "$status" -eq 0 ]
 
 	[[ ${lines[0]} =~ "%CPU" ]]
@@ -198,4 +201,5 @@
 	[[ ${lines[0]} =~ "TIME" ]]
 	[[ ${lines[0]} =~ "TTY" ]]
 	[[ ${lines[0]} =~ "VSZ" ]]
+	[[ ${lines[0]} =~ "SECCOMP" ]]
 }
