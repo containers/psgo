@@ -146,6 +146,11 @@ var (
 			header: "CAPABILITIES",
 			procFn: processCAPBND,
 		},
+		{
+			normal: "seccomp",
+			header: "SECCOMP",
+			procFn: processSECCOMP,
+		},
 	}
 )
 
@@ -598,4 +603,19 @@ func processCAPEFF(p *process) (string, error) {
 // capability is enabled, "none" is returned.
 func processCAPBND(p *process) (string, error) {
 	return parseCAP(p.pstatus.capBnd)
+}
+
+// processSECCOMP returns the seccomp mode of the process (i.e., disabled,
+// strict or filter) or "?" if /proc/$pid/status.seccomp has a unknown value.
+func processSECCOMP(p *process) (string, error) {
+	switch p.pstatus.seccomp {
+	case "0":
+		return "disabled", nil
+	case "1":
+		return "strict", nil
+	case "2":
+		return "filter", nil
+	default:
+		return "?", nil
+	}
 }
