@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/containers/psgo/ps"
@@ -18,8 +19,14 @@ func main() {
 
 	pid := flag.String("pid", "", "join mount namespace of the process ID")
 	format := flag.String("format", "", "ps (1) AIX format comma-separated string")
+	list := flag.Bool("list", false, "list all supported descriptors")
 
 	flag.Parse()
+
+	if *list {
+		fmt.Println(strings.Join(ps.ListDescriptors(), ", "))
+		return
+	}
 
 	if *pid != "" {
 		data, err = ps.JoinNamespaceAndProcessInfo(*pid, *format)
