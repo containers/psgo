@@ -125,7 +125,28 @@ var (
 			normal: "vsz",
 			header: "VSZ",
 			procFn: processVSZ,
-		}}
+		},
+		{
+			normal: "capinh",
+			header: "CAPABILITIES",
+			procFn: processCAPINH,
+		},
+		{
+			normal: "capprm",
+			header: "CAPABILITIES",
+			procFn: processCAPPRM,
+		},
+		{
+			normal: "capeff",
+			header: "CAPABILITIES",
+			procFn: processCAPEFF,
+		},
+		{
+			normal: "capbnd",
+			header: "CAPABILITIES",
+			procFn: processCAPBND,
+		},
+	}
 )
 
 // process includes a process ID and the corresponding data from /proc/pid/stat,
@@ -528,8 +549,53 @@ func processTTY(p *process) (string, error) {
 func processVSZ(p *process) (string, error) {
 	vmsize, err := strconv.Atoi(p.pstat.vsize)
 	if err != nil {
-		fmt.Printf("%v\n", p)
 		return "", err
 	}
 	return fmt.Sprintf("%d", vmsize/1024), nil
+}
+
+// parseCAP parses cap (a string bit mask) and returns the associated set of
+// capabilities.  If all capabilties are set, "full" is returned.  If no
+// capability is enabled, "none" is returned.
+func parseCAP(cap string) (string, error) {
+	mask, err := strconv.ParseUint(cap, 16, 64)
+	if err != nil {
+		return "", err
+	}
+	if mask == fullCAPs {
+		return "full", nil
+	}
+	caps := maskToCaps(mask)
+	if len(caps) == 0 {
+		return "none", nil
+	}
+	return strings.Join(caps, ", "), nil
+}
+
+// processCAPINH returns the set of inheritable capabilties associated with
+// process p.  If all capabilties are set, "full" is returned.  If no
+// capability is enabled, "none" is returned.
+func processCAPINH(p *process) (string, error) {
+	return parseCAP(p.pstatus.capInh)
+}
+
+// processCAPPRM returns the set of permitted capabilties associated with
+// process p.  If all capabilties are set, "full" is returned.  If no
+// capability is enabled, "none" is returned.
+func processCAPPRM(p *process) (string, error) {
+	return parseCAP(p.pstatus.capPrm)
+}
+
+// processCAPEFF returns the set of effective capabilties associated with
+// process p.  If all capabilties are set, "full" is returned.  If no
+// capability is enabled, "none" is returned.
+func processCAPEFF(p *process) (string, error) {
+	return parseCAP(p.pstatus.capEff)
+}
+
+// processCAPBND returns the set of bounding capabilties associated with
+// process p.  If all capabilties are set, "full" is returned.  If no
+// capability is enabled, "none" is returned.
+func processCAPBND(p *process) (string, error) {
+	return parseCAP(p.pstatus.capBnd)
 }
