@@ -1,3 +1,15 @@
+// Package ps is a ps (1) AIX-format compatible golang library extended with
+// various descriptors useful for displaying container-related data.
+//
+// The idea behind the library is to provide an easy to use way of extracting
+// process-related data, just as ps (1) does. The problem when using ps (1) is
+// that the ps format strings split columns with whitespaces, making the output
+// nearly impossible to parse. It also adds some jitter as we have to fork and
+// execute ps either in the container or filter the output afterwards, further
+// limiting applicability.
+//
+// Please visit https://github.com/containers/psgo for further details about
+// supported format descriptors and to see some usage examples.
 package ps
 
 import (
