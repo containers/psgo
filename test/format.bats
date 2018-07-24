@@ -187,7 +187,23 @@
 	run ./bin/psgo -format "hpid"
 	[ "$status" -eq 0 ]
 	[[ ${lines[0]} =~ "HPID" ]]
-	# host PIDs are only extract with `-pid`
+	# host PIDs are only extracted with `-pid`
+	[[ ${lines[1]} =~ "?" ]]
+}
+
+@test "HUSER header" {
+	run ./bin/psgo -format "huser"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} =~ "HUSER" ]]
+	# host users are only extracted with `-pid`
+	[[ ${lines[1]} =~ "?" ]]
+}
+
+@test "HGROUP header" {
+	run ./bin/psgo -format "hgroup"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} =~ "HGROUP" ]]
+	# host groups are only extracted with `-pid`
 	[[ ${lines[1]} =~ "?" ]]
 }
 
@@ -210,7 +226,7 @@ function is_labeling_enabled() {
 }
 
 @test "ALL header" {
-	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capinh, capprm, capeff, capbnd, seccomp, hpid"
+	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capinh, capprm, capeff, capbnd, seccomp, hpid, huser, hgroup"
 	[ "$status" -eq 0 ]
 
 	[[ ${lines[0]} =~ "%CPU" ]]
@@ -229,4 +245,6 @@ function is_labeling_enabled() {
 	[[ ${lines[0]} =~ "VSZ" ]]
 	[[ ${lines[0]} =~ "SECCOMP" ]]
 	[[ ${lines[0]} =~ "HPID" ]]
+	[[ ${lines[0]} =~ "HUSER" ]]
+	[[ ${lines[0]} =~ "HGROUP" ]]
 }

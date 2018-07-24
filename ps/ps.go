@@ -183,6 +183,16 @@ var (
 			header: "HPID",
 			procFn: processHPID,
 		},
+		{
+			normal: "huser",
+			header: "HUSER",
+			procFn: processHUSER,
+		},
+		{
+			normal: "hgroup",
+			header: "HGROUP",
+			procFn: processHGROUP,
+		},
 	}
 )
 
@@ -193,6 +203,8 @@ type process struct {
 	pstat   *stat
 	pstatus *status
 	cmdline []string
+	huser   string
+	hgroup  string
 }
 
 // elapsedTime returns the time.Duration since process p was created.
@@ -281,6 +293,15 @@ func getHostProcesses(pid string) ([]*process, error) {
 			if err == errNoSuchPID {
 				continue
 			}
+			return nil, err
+		}
+
+		p.huser, err = lookupUID(p.pstatus.uids[1])
+		if err != nil {
+			return nil, err
+		}
+		p.hgroup, err = lookupGID(p.pstatus.gids[1])
+		if err != nil {
 			return nil, err
 		}
 
@@ -757,18 +778,46 @@ func processLABEL(p *process) (string, error) {
 	return strings.Trim(string(data), "\x00"), nil
 }
 
-// processHPID returns the corresponding host PID of the (container) process or
-// "?" if no corresponding PID could be found.
-func processHPID(p *process) (string, error) {
+// findHostProcess returns the corresponding process from `hostProcesses` for
+// provided pid or nil if non is found.
+func findHostProcess(pid string) *process {
 	for _, hp := range hostProcesses {
 		// if it's a container, the 2nd NSpid points to the
 		// corresponding PID in the container's namespace
 		if len(hp.pstatus.nSpid) < 2 {
 			continue
 		}
-		if p.pid == hp.pstatus.nSpid[1] {
-			return hp.pid, nil
+		if pid == hp.pstatus.nSpid[1] {
+			return hp
 		}
+	}
+	return nil
+}
+
+// processHPID returns the PID of the corresponding host process of the
+// (container) or "?" if no corresponding process could be found.
+func processHPID(p *process) (string, error) {
+	if hp := findHostProcess(p.pid); hp != nil {
+		return hp.pid, nil
+	}
+	return "?", nil
+}
+
+// processHUSER returns the effective user ID of the corresponding host process
+// of the (container) or "?" if no corresponding process could be found.
+func processHUSER(p *process) (string, error) {
+	if hp := findHostProcess(p.pid); hp != nil {
+		return hp.huser, nil
+	}
+	return "?", nil
+}
+
+// processHGROUP returns the effective group ID of the corresponding host
+// process of the (container) or "?" if no corresponding process could be
+// found.
+func processHGROUP(p *process) (string, error) {
+	if hp := findHostProcess(p.pid); hp != nil {
+		return hp.hgroup, nil
 	}
 	return "?", nil
 }
