@@ -596,7 +596,7 @@ func parseCAP(cap string) (string, error) {
 	if len(caps) == 0 {
 		return "none", nil
 	}
-	return strings.Join(caps, ", "), nil
+	return strings.Join(caps, ","), nil
 }
 
 // processCAPINH returns the set of inheritable capabilties associated with
