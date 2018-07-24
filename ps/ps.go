@@ -181,16 +181,19 @@ var (
 		{
 			normal: "hpid",
 			header: "HPID",
+			onHost: true,
 			procFn: processHPID,
 		},
 		{
 			normal: "huser",
 			header: "HUSER",
+			onHost: true,
 			procFn: processHUSER,
 		},
 		{
 			normal: "hgroup",
 			header: "HGROUP",
+			onHost: true,
 			procFn: processHGROUP,
 		},
 	}
@@ -393,6 +396,9 @@ type aixFormatDescriptor struct {
 	normal string
 	// header of the descriptor (e.g., "%CPU").
 	header string
+	// onHost controls if data of the corresponding host processes will be
+	// extracted as well.
+	onHost bool
 	// procFN points to the corresponding method to etract the desired data.
 	procFn processFunc
 }
@@ -448,9 +454,16 @@ func JoinNamespaceAndProcessInfo(pid, format string) ([]string, error) {
 		return nil, err
 	}
 
-	hostProcesses, err = getHostProcesses(pid)
-	if err != nil {
-		return nil, err
+	// extract data from host processes only on-demand / when at least one
+	// of the specified descriptors requires host data
+	for _, d := range formatDescriptors {
+		if d.onHost {
+			hostProcesses, err = getHostProcesses(pid)
+			if err != nil {
+				return nil, err
+			}
+			break
+		}
 	}
 
 	wg.Add(1)
