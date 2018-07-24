@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	"os"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -596,6 +597,7 @@ func parseCAP(cap string) (string, error) {
 	if len(caps) == 0 {
 		return "none", nil
 	}
+	sort.Strings(caps)
 	return strings.Join(caps, ","), nil
 }
 
