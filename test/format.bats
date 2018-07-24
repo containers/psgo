@@ -183,25 +183,12 @@
 	[[ ${lines[0]} =~ "SECCOMP" ]]
 }
 
-@test "ALL header" {
-	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capinh, capprm, capeff, capbnd, seccomp"
+@test "HPID header" {
+	run ./bin/psgo -format "hpid"
 	[ "$status" -eq 0 ]
-
-	[[ ${lines[0]} =~ "%CPU" ]]
-	[[ ${lines[0]} =~ "GROUP" ]]
-	[[ ${lines[0]} =~ "PPID" ]]
-	[[ ${lines[0]} =~ "USER" ]]
-	[[ ${lines[0]} =~ "COMMAND" ]]
-	[[ ${lines[0]} =~ "COMMAND" ]]
-	[[ ${lines[0]} =~ "RGROUP" ]]
-	[[ ${lines[0]} =~ "NI" ]]
-	[[ ${lines[0]} =~ "PID" ]]
-	[[ ${lines[0]} =~ "ELAPSED" ]]
-	[[ ${lines[0]} =~ "RUSER" ]]
-	[[ ${lines[0]} =~ "TIME" ]]
-	[[ ${lines[0]} =~ "TTY" ]]
-	[[ ${lines[0]} =~ "VSZ" ]]
-	[[ ${lines[0]} =~ "SECCOMP" ]]
+	[[ ${lines[0]} =~ "HPID" ]]
+	# host PIDs are only extract with `-pid`
+	[[ ${lines[1]} =~ "?" ]]
 }
 
 function is_labeling_enabled() {
@@ -220,4 +207,26 @@ function is_labeling_enabled() {
 	run ./bin/psgo -format "label"
 	[ "$status" -eq 0 ]
 	[[ ${lines[0]} =~ "LABEL" ]]
+}
+
+@test "ALL header" {
+	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capinh, capprm, capeff, capbnd, seccomp, hpid"
+	[ "$status" -eq 0 ]
+
+	[[ ${lines[0]} =~ "%CPU" ]]
+	[[ ${lines[0]} =~ "GROUP" ]]
+	[[ ${lines[0]} =~ "PPID" ]]
+	[[ ${lines[0]} =~ "USER" ]]
+	[[ ${lines[0]} =~ "COMMAND" ]]
+	[[ ${lines[0]} =~ "COMMAND" ]]
+	[[ ${lines[0]} =~ "RGROUP" ]]
+	[[ ${lines[0]} =~ "NI" ]]
+	[[ ${lines[0]} =~ "PID" ]]
+	[[ ${lines[0]} =~ "ELAPSED" ]]
+	[[ ${lines[0]} =~ "RUSER" ]]
+	[[ ${lines[0]} =~ "TIME" ]]
+	[[ ${lines[0]} =~ "TTY" ]]
+	[[ ${lines[0]} =~ "VSZ" ]]
+	[[ ${lines[0]} =~ "SECCOMP" ]]
+	[[ ${lines[0]} =~ "HPID" ]]
 }

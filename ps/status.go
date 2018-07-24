@@ -48,7 +48,7 @@ type status struct {
 	nStgid string
 	// NSpid:  Thread ID in each of the PID namespaces of which [pid] is a
 	// member.  The fields are ordered as for NStgid.  (Since Linux 4.1.)
-	nSpid string
+	nSpid []string
 	// NSpgid: Process group ID in each of the PID namespaces of which
 	// [pid] is a member.  The fields are ordered as for NStgid.  (Since
 	// Linux 4.1.)
@@ -228,7 +228,7 @@ func parseStatus(path string) (*status, error) {
 		case "NStgid:":
 			s.nStgid = fields[1]
 		case "NSpid:":
-			s.nSpid = fields[1]
+			s.nSpid = fields[1:]
 		case "NSpgid:":
 			s.nSpgid = fields[1]
 		case "NSsid:":

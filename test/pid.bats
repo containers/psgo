@@ -48,3 +48,15 @@
 
 	docker rm -f $ID
 }
+
+@test "Join namespace of a Docker container and extract host PID" {
+	ID="$(docker run -d alpine sleep 100)"
+	PID="$(docker inspect --format '{{.State.Pid}}' $ID)"
+
+	run sudo ./bin/psgo -pid $PID -format "pid, hpid"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} == "PID   HPID" ]]
+	[[ ${lines[1]} =~ "1     $PID" ]]
+
+	docker rm -f $ID
+}
