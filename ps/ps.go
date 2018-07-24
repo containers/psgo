@@ -189,7 +189,7 @@ var (
 // process includes a process ID and the corresponding data from /proc/pid/stat,
 // /proc/pid/status and from /prod/pid/cmdline.
 type process struct {
-	pid     int
+	pid     string
 	pstat   *stat
 	pstatus *status
 	cmdline []string
@@ -263,14 +263,10 @@ func getHostProcesses(pid string) ([]*process, error) {
 	}
 	defer f.Close()
 
-	pids := []int{}
+	pids := []string{}
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
-		p, err := strconv.Atoi(scanner.Text())
-		if err != nil {
-			return nil, err
-		}
-		pids = append(pids, p)
+		pids = append(pids, scanner.Text())
 	}
 
 	processes := []*process{}
@@ -280,7 +276,7 @@ func getHostProcesses(pid string) ([]*process, error) {
 			p   process
 		)
 		p.pid = pid
-		p.pstatus, err = parseStatus(fmt.Sprintf("/proc/%d/status", pid))
+		p.pstatus, err = parseStatus(fmt.Sprintf("/proc/%s/status", pid))
 		if err != nil {
 			if err == errNoSuchPID {
 				continue
@@ -308,21 +304,21 @@ func processes() ([]*process, error) {
 			p   process
 		)
 		p.pid = pid
-		p.pstat, err = parseStat(fmt.Sprintf("/proc/%d/stat", pid))
+		p.pstat, err = parseStat(fmt.Sprintf("/proc/%s/stat", pid))
 		if err != nil {
 			if err == errNoSuchPID {
 				continue
 			}
 			return nil, err
 		}
-		p.pstatus, err = parseStatus(fmt.Sprintf("/proc/%d/status", pid))
+		p.pstatus, err = parseStatus(fmt.Sprintf("/proc/%s/status", pid))
 		if err != nil {
 			if err == errNoSuchPID {
 				continue
 			}
 			return nil, err
 		}
-		p.cmdline, err = parseCmdline(fmt.Sprintf("/proc/%d/cmdline", pid))
+		p.cmdline, err = parseCmdline(fmt.Sprintf("/proc/%s/cmdline", pid))
 		if err != nil {
 			if err == errNoSuchPID {
 				continue
@@ -336,7 +332,7 @@ func processes() ([]*process, error) {
 }
 
 // getPIDs extracts and returns all PIDs from /proc.
-func getPIDs() ([]int, error) {
+func getPIDs() ([]string, error) {
 	procDir, err := os.Open("/proc/")
 	if err != nil {
 		return nil, err
@@ -349,15 +345,14 @@ func getPIDs() ([]int, error) {
 		return nil, err
 	}
 
-	// convert pidDirs to int
-	pids := []int{}
+	pids := []string{}
 	for _, pidDir := range pidDirs {
-		pid, err := strconv.Atoi(pidDir)
+		_, err := strconv.Atoi(pidDir)
 		if err != nil {
 			// skip non-numerical entries (e.g., `/proc/softirqs`)
 			continue
 		}
-		pids = append(pids, pid)
+		pids = append(pids, pidDir)
 	}
 
 	return pids, nil
@@ -612,7 +607,7 @@ func processNICE(p *process) (string, error) {
 
 // processPID returns the process ID of process p.
 func processPID(p *process) (string, error) {
-	return p.pstatus.pid, nil
+	return p.pid, nil
 }
 
 // processPGID returns the process group ID of process p.
@@ -748,12 +743,12 @@ func processSECCOMP(p *process) (string, error) {
 
 // processLABEL returns the process label of process p.
 func processLABEL(p *process) (string, error) {
-	data, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/attr/current", p.pid))
+	data, err := ioutil.ReadFile(fmt.Sprintf("/proc/%s/attr/current", p.pid))
 	if err != nil {
 		if os.IsNotExist(err) {
 			// make sure the pid does not exist,
 			// could be system does not support labeling.
-			if _, err2 := os.Stat(fmt.Sprintf("/proc/%d", p.pid)); err2 != nil {
+			if _, err2 := os.Stat(fmt.Sprintf("/proc/%s", p.pid)); err2 != nil {
 				return "", errNoSuchPID
 			}
 		}
@@ -771,8 +766,8 @@ func processHPID(p *process) (string, error) {
 		if len(hp.pstatus.nSpid) < 2 {
 			continue
 		}
-		if p.pstat.pid == hp.pstatus.nSpid[1] {
-			return hp.pstatus.pid, nil
+		if p.pid == hp.pstatus.nSpid[1] {
+			return hp.pid, nil
 		}
 	}
 	return "?", nil
