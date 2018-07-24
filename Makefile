@@ -33,7 +33,7 @@ validate: $(GO_SRC)
 	test -z "$$($(GO) vet $$($(GO) list $(PROJECT)/...) 2>&1 | tee /dev/stderr)"
 
 .PHONY: test
-test: test-integration
+test: test-unit test-integration
 
 .PHONY: test-integration
 test-integration:
