@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	"os"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -330,6 +331,7 @@ func ListDescriptors() (list []string) {
 	for _, d := range descriptors {
 		list = append(list, d.normal)
 	}
+	sort.Strings(list)
 	return
 }
 
@@ -596,6 +598,7 @@ func parseCAP(cap string) (string, error) {
 	if len(caps) == 0 {
 		return "none", nil
 	}
+	sort.Strings(caps)
 	return strings.Join(caps, ","), nil
 }
 
