@@ -331,6 +331,7 @@ func ListDescriptors() (list []string) {
 	for _, d := range descriptors {
 		list = append(list, d.normal)
 	}
+	sort.Strings(list)
 	return
 }
 
