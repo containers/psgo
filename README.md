@@ -5,13 +5,16 @@ A ps (1) AIX-format compatible golang library extended with various descriptors 
 
 The idea behind the library is to provide an easy to use way of extracting process-related data, just as ps (1) does. The problem when using ps (1) is that the ps format strings split columns with whitespaces, making the output nearly impossible to parse. It also adds some jitter as we have to fork and execute ps either in the container or filter the output afterwards, further limiting applicability.
 
-This library aims to make things a bit more comfortable, especially for container runtimes, as the API allows to join the mount namespace of a given process and will parse `/proc` and `/dev/` from there. Currently, the API consists of two functions:
+This library aims to make things a bit more comfortable, especially for container runtimes, as the API allows to join the mount namespace of a given process and will parse `/proc` and `/dev/` from there. The API consists of the following functions:
 
  - `ps.ProcessInfo(format string) ([]string, error)`
-   - ProcessInfo returns the process information of all processes in the current mount namespace. The input format must be a comma-separated list of supported AIX format descriptors.  If the input string is empty, the DefaultFormat is used. The return value is an array of tab-separated strings, to easily use the output for column-based formatting (e.g., with the `text/tabwriter` package).
+   - ProcessInfo returns the process information of all processes in the current mount namespace. The input format must be a comma-separated list of supported AIX format descriptors.  If the input string is empty, the DefaultFormat is used. The return value is a slice of tab-separated strings, to easily use the output for column-based formatting (e.g., with the `text/tabwriter` package).
 
  - `ps.JoinNamespaceAndProcessInfo(pid, format string) ([]string, error)`
    - JoinNamespaceAndProcessInfo has the same semantics as ProcessInfo but joins the mount namespace of the specified pid before extracting data from /proc.  This way, we can extract the `/proc` data from a container without executing any command inside the container.
+
+ - `ps.ListDescriptors() []string`
+   - ListDescriptors returns a sorted string slice of all supported AIX format descriptors in the normal form (e.g., "args,comm,user").  It can be useful in the context of bash-completion, help messages, etc.
 
 ### Listing processes
 We can use the [psgo](https://github.com/containers/psgo/blob/master/psgo.go) tool from this project to test the core components of this library. First, let's build `psgo` via `make build`.  The binary is now located under `./bin/psgo`.  By default `psgo` displays data about all running processes in the current mount namespace, similar to the output of `ps -ef`.
