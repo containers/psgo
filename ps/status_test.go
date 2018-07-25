@@ -87,7 +87,7 @@ func TestParseStatus(t *testing.T) {
 	assert.Equal(t, "256", s.fdSize)
 	assert.Equal(t, []string{"16", "33", "100"}, s.groups)
 	assert.Equal(t, "17248", s.nStgid)
-	assert.Equal(t, "17248", s.nSpid)
+	assert.Equal(t, []string{"17248"}, s.nSpid)
 	assert.Equal(t, "17248", s.nSpgid)
 	assert.Equal(t, "131168", s.vmPeak)
 	assert.Equal(t, "131168", s.vmSize)

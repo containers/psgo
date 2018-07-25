@@ -13,6 +13,7 @@
 package ps
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -45,9 +46,16 @@ var (
 	// clockTicks is the value of sysconf(SC_CLK_TCK)
 	clockTicks = getClockTicks()
 
-	// ttyDevices is a slice of ttys. Singledton to safe some time and
+	// ttyDevices is a slice of ttys. Singleton to safe some time and
 	// energy.
 	ttyDevices []*tty
+
+	// hostProcesses are the processes on the host.  It should only be used
+	// in the context of containers and is meant to display data of the
+	// container processes from the host's (i.e., calling process) view.
+	// Currently, all host processes contain only the required data from
+	// /proc/$pid/status.
+	hostProcesses []*process
 
 	descriptors = []aixFormatDescriptor{
 		{
@@ -170,16 +178,44 @@ var (
 			header: "LABEL",
 			procFn: processLABEL,
 		},
+		{
+			normal: "hpid",
+			header: "HPID",
+			onHost: true,
+			procFn: processHPID,
+		},
+		{
+			normal: "huser",
+			header: "HUSER",
+			onHost: true,
+			procFn: processHUSER,
+		},
+		{
+			normal: "hgroup",
+			header: "HGROUP",
+			onHost: true,
+			procFn: processHGROUP,
+		},
 	}
 )
 
 // process includes a process ID and the corresponding data from /proc/pid/stat,
-// /proc/pid/status and from /prod/pid/cmdline.
+// /proc/pid/status and from /proc/pid/cmdline.
 type process struct {
-	pid     int
-	pstat   *stat
+	// process ID
+	pid string
+	// data from /proc/$pid/stat
+	pstat *stat
+	// data from /proc/$pid/status
 	pstatus *status
+	// data from /proc/$pid/cmdline
 	cmdline []string
+	// pid namespace: used to match processes across namespaces
+	pidNS string
+	// host user: must be extracted prior to joining another namespace
+	huser string
+	// host user: must be extracted prior to joining another namespace
+	hgroup string
 }
 
 // elapsedTime returns the time.Duration since process p was created.
@@ -215,6 +251,82 @@ func (p *process) cpuTime() (time.Duration, error) {
 	return cpu.Sub(time.Unix(0, 0)), nil
 }
 
+// pidsCgroupFromPID returns the path to the PID's pids cgroup.
+func pidsCgroupFromPID(pid string) (string, error) {
+	f, err := os.Open(fmt.Sprintf("/proc/%s/cgroup", pid))
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		fields := strings.Split(scanner.Text(), ":")
+		if len(fields) != 3 {
+			continue
+		}
+		if fields[1] == "pids" {
+			return fmt.Sprintf("/sys/fs/cgroup/pids/%s/cgroup.procs", fields[2]), nil
+		}
+	}
+	return "", fmt.Errorf("couldn't find pids group for PID %s", pid)
+}
+
+// getHostProcesses returns a process slice of processes mentioned in /proc.
+// Currently, only /proc/$pid/status is parsed.
+func getHostProcesses(pid string) ([]*process, error) {
+	cgroupPath, err := pidsCgroupFromPID(pid)
+	if err != nil {
+		return nil, err
+	}
+
+	f, err := os.Open(cgroupPath)
+	if err != nil {
+		return nil, errors.Wrap(err, "error parsing pids cgroup")
+	}
+	defer f.Close()
+
+	pids := []string{}
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		pids = append(pids, scanner.Text())
+	}
+
+	processes := []*process{}
+	for _, pid := range pids {
+		var (
+			err error
+			p   process
+		)
+		p.pid = pid
+		p.pstatus, err = parseStatus(fmt.Sprintf("/proc/%s/status", pid))
+		if err != nil {
+			if err == errNoSuchPID {
+				continue
+			}
+			return nil, err
+		}
+
+		p.huser, err = lookupUID(p.pstatus.uids[1])
+		if err != nil {
+			return nil, err
+		}
+		p.hgroup, err = lookupGID(p.pstatus.gids[1])
+		if err != nil {
+			return nil, err
+		}
+
+		p.pidNS, err = os.Readlink(fmt.Sprintf("/proc/%s/ns/pid", pid))
+		if err != nil {
+			return nil, err
+		}
+
+		processes = append(processes, &p)
+	}
+
+	return processes, nil
+}
+
 // processes returns a process slice of processes mentioned in /proc.
 func processes() ([]*process, error) {
 	pids, err := getPIDs()
@@ -229,21 +341,21 @@ func processes() ([]*process, error) {
 			p   process
 		)
 		p.pid = pid
-		p.pstat, err = parseStat(fmt.Sprintf("/proc/%d/stat", pid))
+		p.pstat, err = parseStat(fmt.Sprintf("/proc/%s/stat", pid))
 		if err != nil {
 			if err == errNoSuchPID {
 				continue
 			}
 			return nil, err
 		}
-		p.pstatus, err = parseStatus(fmt.Sprintf("/proc/%d/status", pid))
+		p.pstatus, err = parseStatus(fmt.Sprintf("/proc/%s/status", pid))
 		if err != nil {
 			if err == errNoSuchPID {
 				continue
 			}
 			return nil, err
 		}
-		p.cmdline, err = parseCmdline(fmt.Sprintf("/proc/%d/cmdline", pid))
+		p.cmdline, err = parseCmdline(fmt.Sprintf("/proc/%s/cmdline", pid))
 		if err != nil {
 			if err == errNoSuchPID {
 				continue
@@ -257,7 +369,7 @@ func processes() ([]*process, error) {
 }
 
 // getPIDs extracts and returns all PIDs from /proc.
-func getPIDs() ([]int, error) {
+func getPIDs() ([]string, error) {
 	procDir, err := os.Open("/proc/")
 	if err != nil {
 		return nil, err
@@ -270,15 +382,14 @@ func getPIDs() ([]int, error) {
 		return nil, err
 	}
 
-	// convert pidDirs to int
-	pids := []int{}
+	pids := []string{}
 	for _, pidDir := range pidDirs {
-		pid, err := strconv.Atoi(pidDir)
+		_, err := strconv.Atoi(pidDir)
 		if err != nil {
 			// skip non-numerical entries (e.g., `/proc/softirqs`)
 			continue
 		}
-		pids = append(pids, pid)
+		pids = append(pids, pidDir)
 	}
 
 	return pids, nil
@@ -292,9 +403,16 @@ type processFunc func(*process) (string, error)
 // can either be specified via its code (e.g., "%C") or its normal representation
 // (e.g., "pcpu") and will be printed under its corresponding header (e.g, "%CPU").
 type aixFormatDescriptor struct {
-	code   string
+	// code descriptor in the short form (e.g., "%C").
+	code string
+	// normal descriptor in the long form (e.g., "pcpu").
 	normal string
+	// header of the descriptor (e.g., "%CPU").
 	header string
+	// onHost controls if data of the corresponding host processes will be
+	// extracted as well.
+	onHost bool
+	// procFN points to the corresponding method to etract the desired data.
 	procFn processFunc
 }
 
@@ -342,7 +460,29 @@ func JoinNamespaceAndProcessInfo(pid, format string) ([]string, error) {
 		data    []string
 		dataErr error
 		wg      sync.WaitGroup
+		onHost  bool
 	)
+
+	formatDescriptors, err := parseDescriptors(format)
+	if err != nil {
+		return nil, err
+	}
+
+	// extract data from host processes only on-demand / when at least one
+	// of the specified descriptors requires host data
+	for _, d := range formatDescriptors {
+		if d.onHost {
+			onHost = true
+			break
+		}
+	}
+
+	if onHost {
+		hostProcesses, err = getHostProcesses(pid)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	wg.Add(1)
 	go func() {
@@ -362,7 +502,23 @@ func JoinNamespaceAndProcessInfo(pid, format string) ([]string, error) {
 			return
 		}
 		unix.Setns(int(fd.Fd()), unix.CLONE_NEWNS)
-		data, dataErr = ProcessInfo(format)
+
+		processes, err := processes()
+		if err != nil {
+			dataErr = err
+			return
+		}
+		if onHost {
+			for _, p := range processes {
+				p.pidNS, err = os.Readlink(fmt.Sprintf("/proc/%s/ns/pid", p.pid))
+				if err != nil {
+					dataErr = err
+					return
+				}
+			}
+		}
+
+		data, dataErr = processDescriptors(formatDescriptors, processes)
 	}()
 	wg.Wait()
 
@@ -372,14 +528,10 @@ func JoinNamespaceAndProcessInfo(pid, format string) ([]string, error) {
 // ProcessInfo returns the process information of all processes in the current
 // mount namespace. The input format must be a comma-separated list of
 // supported AIX format descriptors.  If the input string is empty, the
-// DefaultFormat is used.
+// `DefaultFormat` is used.
 // The return value is an array of tab-separated strings, to easily use the
 // output for column-based formatting (e.g., with the `text/tabwriter` package).
 func ProcessInfo(format string) ([]string, error) {
-	if len(format) == 0 {
-		format = DefaultFormat
-	}
-
 	formatDescriptors, err := parseDescriptors(format)
 	if err != nil {
 		return nil, err
@@ -397,8 +549,13 @@ func ProcessInfo(format string) ([]string, error) {
 // of aixFormatDescriptors, which are expected to be separated by commas.
 // The input format is "desc1, desc2, ..., desN" where a given descriptor can be
 // specified both, in the code and in the normal form.  A concrete example is
-// "pid, %C, nice, %a".
+// "pid, %C, nice, %a".  If the input string is empty, the `DefaultFormat` is
+// used.
 func parseDescriptors(input string) ([]aixFormatDescriptor, error) {
+	if len(input) == 0 {
+		input = DefaultFormat
+	}
+
 	formatDescriptors := []aixFormatDescriptor{}
 	for _, s := range strings.Split(input, ",") {
 		s = strings.TrimSpace(s)
@@ -511,7 +668,7 @@ func processNICE(p *process) (string, error) {
 
 // processPID returns the process ID of process p.
 func processPID(p *process) (string, error) {
-	return p.pstatus.pid, nil
+	return p.pid, nil
 }
 
 // processPGID returns the process group ID of process p.
@@ -647,16 +804,62 @@ func processSECCOMP(p *process) (string, error) {
 
 // processLABEL returns the process label of process p.
 func processLABEL(p *process) (string, error) {
-	data, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/attr/current", p.pid))
+	data, err := ioutil.ReadFile(fmt.Sprintf("/proc/%s/attr/current", p.pid))
 	if err != nil {
 		if os.IsNotExist(err) {
 			// make sure the pid does not exist,
 			// could be system does not support labeling.
-			if _, err2 := os.Stat(fmt.Sprintf("/proc/%d", p.pid)); err2 != nil {
+			if _, err2 := os.Stat(fmt.Sprintf("/proc/%s", p.pid)); err2 != nil {
 				return "", errNoSuchPID
 			}
 		}
 		return "", err
 	}
 	return strings.Trim(string(data), "\x00"), nil
+}
+
+// findHostProcess returns the corresponding process from `hostProcesses` or
+// nil if non is found.
+func findHostProcess(p *process) *process {
+	for _, hp := range hostProcesses {
+		// We expect the host process to be in another namespace, so
+		// /proc/$pid/status.NSpid must have at least two entries.
+		if len(hp.pstatus.nSpid) < 2 {
+			continue
+		}
+		// The process' PID must match the one in the NS of the host
+		// process and both must share the same pid NS.
+		if p.pid == hp.pstatus.nSpid[1] && p.pidNS == hp.pidNS {
+			return hp
+		}
+	}
+	return nil
+}
+
+// processHPID returns the PID of the corresponding host process of the
+// (container) or "?" if no corresponding process could be found.
+func processHPID(p *process) (string, error) {
+	if hp := findHostProcess(p); hp != nil {
+		return hp.pid, nil
+	}
+	return "?", nil
+}
+
+// processHUSER returns the effective user ID of the corresponding host process
+// of the (container) or "?" if no corresponding process could be found.
+func processHUSER(p *process) (string, error) {
+	if hp := findHostProcess(p); hp != nil {
+		return hp.huser, nil
+	}
+	return "?", nil
+}
+
+// processHGROUP returns the effective group ID of the corresponding host
+// process of the (container) or "?" if no corresponding process could be
+// found.
+func processHGROUP(p *process) (string, error) {
+	if hp := findHostProcess(p); hp != nil {
+		return hp.hgroup, nil
+	}
+	return "?", nil
 }
