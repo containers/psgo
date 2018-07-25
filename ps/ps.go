@@ -200,14 +200,22 @@ var (
 )
 
 // process includes a process ID and the corresponding data from /proc/pid/stat,
-// /proc/pid/status and from /prod/pid/cmdline.
+// /proc/pid/status and from /proc/pid/cmdline.
 type process struct {
-	pid     string
-	pstat   *stat
+	// process ID
+	pid string
+	// data from /proc/$pid/stat
+	pstat *stat
+	// data from /proc/$pid/status
 	pstatus *status
+	// data from /proc/$pid/cmdline
 	cmdline []string
-	huser   string
-	hgroup  string
+	// pid namespace: used to match processes across namespaces
+	pidNS string
+	// host user: must be extracted prior to joining another namespace
+	huser string
+	// host user: must be extracted prior to joining another namespace
+	hgroup string
 }
 
 // elapsedTime returns the time.Duration since process p was created.
@@ -304,6 +312,11 @@ func getHostProcesses(pid string) ([]*process, error) {
 			return nil, err
 		}
 		p.hgroup, err = lookupGID(p.pstatus.gids[1])
+		if err != nil {
+			return nil, err
+		}
+
+		p.pidNS, err = os.Readlink(fmt.Sprintf("/proc/%s/ns/pid", pid))
 		if err != nil {
 			return nil, err
 		}
@@ -447,6 +460,7 @@ func JoinNamespaceAndProcessInfo(pid, format string) ([]string, error) {
 		data    []string
 		dataErr error
 		wg      sync.WaitGroup
+		onHost  bool
 	)
 
 	formatDescriptors, err := parseDescriptors(format)
@@ -458,11 +472,15 @@ func JoinNamespaceAndProcessInfo(pid, format string) ([]string, error) {
 	// of the specified descriptors requires host data
 	for _, d := range formatDescriptors {
 		if d.onHost {
-			hostProcesses, err = getHostProcesses(pid)
-			if err != nil {
-				return nil, err
-			}
+			onHost = true
 			break
+		}
+	}
+
+	if onHost {
+		hostProcesses, err = getHostProcesses(pid)
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -489,6 +507,15 @@ func JoinNamespaceAndProcessInfo(pid, format string) ([]string, error) {
 		if err != nil {
 			dataErr = err
 			return
+		}
+		if onHost {
+			for _, p := range processes {
+				p.pidNS, err = os.Readlink(fmt.Sprintf("/proc/%s/ns/pid", p.pid))
+				if err != nil {
+					dataErr = err
+					return
+				}
+			}
 		}
 
 		data, dataErr = processDescriptors(formatDescriptors, processes)
@@ -791,16 +818,18 @@ func processLABEL(p *process) (string, error) {
 	return strings.Trim(string(data), "\x00"), nil
 }
 
-// findHostProcess returns the corresponding process from `hostProcesses` for
-// provided pid or nil if non is found.
-func findHostProcess(pid string) *process {
+// findHostProcess returns the corresponding process from `hostProcesses` or
+// nil if non is found.
+func findHostProcess(p *process) *process {
 	for _, hp := range hostProcesses {
-		// if it's a container, the 2nd NSpid points to the
-		// corresponding PID in the container's namespace
+		// We expect the host process to be in another namespace, so
+		// /proc/$pid/status.NSpid must have at least two entries.
 		if len(hp.pstatus.nSpid) < 2 {
 			continue
 		}
-		if pid == hp.pstatus.nSpid[1] {
+		// The process' PID must match the one in the NS of the host
+		// process and both must share the same pid NS.
+		if p.pid == hp.pstatus.nSpid[1] && p.pidNS == hp.pidNS {
 			return hp
 		}
 	}
@@ -810,7 +839,7 @@ func findHostProcess(pid string) *process {
 // processHPID returns the PID of the corresponding host process of the
 // (container) or "?" if no corresponding process could be found.
 func processHPID(p *process) (string, error) {
-	if hp := findHostProcess(p.pid); hp != nil {
+	if hp := findHostProcess(p); hp != nil {
 		return hp.pid, nil
 	}
 	return "?", nil
@@ -819,7 +848,7 @@ func processHPID(p *process) (string, error) {
 // processHUSER returns the effective user ID of the corresponding host process
 // of the (container) or "?" if no corresponding process could be found.
 func processHUSER(p *process) (string, error) {
-	if hp := findHostProcess(p.pid); hp != nil {
+	if hp := findHostProcess(p); hp != nil {
 		return hp.huser, nil
 	}
 	return "?", nil
@@ -829,7 +858,7 @@ func processHUSER(p *process) (string, error) {
 // process of the (container) or "?" if no corresponding process could be
 // found.
 func processHGROUP(p *process) (string, error) {
-	if hp := findHostProcess(p.pid); hp != nil {
+	if hp := findHostProcess(p); hp != nil {
 		return hp.hgroup, nil
 	}
 	return "?", nil
