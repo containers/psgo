@@ -11,7 +11,7 @@ all: validate build
 
 .PHONY: build
 build: $(GO_SRC)
-	 $(GO) build -buildmode=pie -o $(BUILD_DIR)/$(NAME)
+	 $(GO) build -buildmode=pie -o $(BUILD_DIR)/$(NAME) $(PROJECT)/sample
 
 .PHONY: clean
 clean:
@@ -41,7 +41,8 @@ test-integration:
 
 .PHONY: test-unit
 test-unit:
-	go test -v $(PROJECT)/ps
+	go test -v $(PROJECT)
+	go test -v $(PROJECT)/internal/...
 
 .PHONY: install
 install:
