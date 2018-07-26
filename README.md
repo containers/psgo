@@ -7,10 +7,10 @@ The idea behind the library is to provide an easy to use way of extracting proce
 
 This library aims to make things a bit more comfortable, especially for container runtimes, as the API allows to join the mount namespace of a given process and will parse `/proc` and `/dev/` from there. The API consists of the following functions:
 
- - `psgo.ProcessInfo(format string) ([]string, error)`
-   - ProcessInfo returns the process information of all processes in the current mount namespace. The input format must be a comma-separated list of supported AIX format descriptors.  If the input string is empty, the DefaultFormat is used. The return value is a slice of tab-separated strings, to easily use the output for column-based formatting (e.g., with the `text/tabwriter` package).
+ - `psgo.ProcessInfo(descriptors []string) ([][]string, error)`
+   - ProcessInfo returns the process information of all processes in the current mount namespace. The input descriptors must be a slice of supported AIX format descriptors in the normal form or in the code form, if supported.  If the input descriptor slice is empty, the `psgo.DefaultDescriptors` are used. The return value contains the string slice of process data, one per process.
 
- - `psgo.JoinNamespaceAndProcessInfo(pid, format string) ([]string, error)`
+ - `psgo.JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, error)`
    - JoinNamespaceAndProcessInfo has the same semantics as ProcessInfo but joins the mount namespace of the specified pid before extracting data from /proc.  This way, we can extract the `/proc` data from a container without executing any command inside the container.
 
  - `psgo.ListDescriptors() []string`

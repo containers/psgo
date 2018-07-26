@@ -13,12 +13,13 @@ import (
 
 func main() {
 	var (
-		data []string
-		err  error
+		descriptors []string
+		data        [][]string
+		err         error
 	)
 
 	pid := flag.String("pid", "", "join mount namespace of the process ID")
-	format := flag.String("format", "", "ps (1) AIX format comma-separated string")
+	format := flag.String("format", "", "ps(1) AIX format comma-separated string")
 	list := flag.Bool("list", false, "list all supported descriptors")
 
 	flag.Parse()
@@ -28,13 +29,17 @@ func main() {
 		return
 	}
 
+	if *format != "" {
+		descriptors = strings.Split(*format, ",")
+	}
+
 	if *pid != "" {
-		data, err = psgo.JoinNamespaceAndProcessInfo(*pid, *format)
+		data, err = psgo.JoinNamespaceAndProcessInfo(*pid, descriptors)
 		if err != nil {
 			logrus.Panic(err)
 		}
 	} else {
-		data, err = psgo.ProcessInfo(*format)
+		data, err = psgo.ProcessInfo(descriptors)
 		if err != nil {
 			logrus.Panic(err)
 		}
@@ -42,7 +47,7 @@ func main() {
 
 	tw := tabwriter.NewWriter(os.Stdout, 5, 1, 3, ' ', 0)
 	for _, d := range data {
-		fmt.Fprintln(tw, d)
+		fmt.Fprintln(tw, strings.Join(d, "\t"))
 	}
 	tw.Flush()
 }

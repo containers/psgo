@@ -29,9 +29,6 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-// DefaultFormat is the `ps -ef` compatible default format.
-const DefaultFormat = "user,pid,ppid,pcpu,etime,tty,time,comm"
-
 // processFunc is used to map a given aixFormatDescriptor to a corresponding
 // function extracting the desired data from a process.
 type processFunc func(*process.Process) (string, error)
@@ -53,35 +50,37 @@ type aixFormatDescriptor struct {
 	procFn processFunc
 }
 
-// parseDescriptors parses the input string and returns a correspodning array
-// of aixFormatDescriptors, which are expected to be separated by commas.
-// The input format is "desc1, desc2, ..., desN" where a given descriptor can be
-// specified both, in the code and in the normal form.  A concrete example is
-// "pid, %C, nice, %a".  If the input string is empty, the `DefaultFormat` is
-// used.
-func parseDescriptors(input string) ([]aixFormatDescriptor, error) {
-	if len(input) == 0 {
-		input = DefaultFormat
+// translateDescriptors parses the descriptors and returns a correspodning slice of
+// aixFormatDescriptors.  Descriptors can be specified in the normal and in the
+// code form (if supported).  If the descriptors slice is empty, the
+// `DefaultDescriptors` is used.
+func translateDescriptors(descriptors []string) ([]aixFormatDescriptor, error) {
+	if len(descriptors) == 0 {
+		descriptors = DefaultDescriptors
 	}
 
 	formatDescriptors := []aixFormatDescriptor{}
-	for _, s := range strings.Split(input, ",") {
-		s = strings.TrimSpace(s)
+	for _, d := range descriptors {
+		d = strings.TrimSpace(d)
 		found := false
-		for _, d := range descriptors {
-			if s == d.code || s == d.normal {
-				formatDescriptors = append(formatDescriptors, d)
+		for _, aix := range aixFormatDescriptors {
+			if d == aix.code || d == aix.normal {
+				formatDescriptors = append(formatDescriptors, aix)
 				found = true
 			}
 		}
 		if !found {
-			return nil, errors.Wrapf(ErrUnkownDescriptor, "'%s'", s)
+			return nil, errors.Wrapf(ErrUnkownDescriptor, "'%s'", d)
 		}
 	}
+
 	return formatDescriptors, nil
 }
 
 var (
+	// DefaultDescriptors is the `ps -ef` compatible default format.
+	DefaultDescriptors = []string{"user", "pid", "ppid", "pcpu", "etime", "tty", "time", "comm"}
+
 	// ErrUnkownDescriptor is returned when an unknown descriptor is parsed.
 	ErrUnkownDescriptor = errors.New("unknown descriptor")
 
@@ -92,7 +91,7 @@ var (
 	// /proc/$pid/status.
 	hostProcesses []*process.Process
 
-	descriptors = []aixFormatDescriptor{
+	aixFormatDescriptors = []aixFormatDescriptor{
 		{
 			code:   "%C",
 			normal: "pcpu",
@@ -237,7 +236,7 @@ var (
 // ListDescriptors returns a string slice of all supported AIX format
 // descriptors in the normal form.
 func ListDescriptors() (list []string) {
-	for _, d := range descriptors {
+	for _, d := range aixFormatDescriptors {
 		list = append(list, d.normal)
 	}
 	sort.Strings(list)
@@ -246,21 +245,21 @@ func ListDescriptors() (list []string) {
 
 // JoinNamespaceAndProcessInfo has the same semantics as ProcessInfo but joins
 // the mount namespace of the specified pid before extracting data from `/proc`.
-func JoinNamespaceAndProcessInfo(pid, format string) ([]string, error) {
+func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, error) {
 	var (
-		data    []string
+		data    [][]string
 		dataErr error
 		wg      sync.WaitGroup
 	)
 
-	formatDescriptors, err := parseDescriptors(format)
+	aixDescriptors, err := translateDescriptors(descriptors)
 	if err != nil {
 		return nil, err
 	}
 
 	// extract data from host processes only on-demand / when at least one
 	// of the specified descriptors requires host data
-	for _, d := range formatDescriptors {
+	for _, d := range aixDescriptors {
 		if d.onHost {
 			setHostProcesses(pid)
 			break
@@ -297,7 +296,7 @@ func JoinNamespaceAndProcessInfo(pid, format string) ([]string, error) {
 			return
 		}
 
-		data, dataErr = processDescriptors(formatDescriptors, processes)
+		data, dataErr = processDescriptors(aixDescriptors, processes)
 	}()
 	wg.Wait()
 
@@ -307,11 +306,11 @@ func JoinNamespaceAndProcessInfo(pid, format string) ([]string, error) {
 // ProcessInfo returns the process information of all processes in the current
 // mount namespace. The input format must be a comma-separated list of
 // supported AIX format descriptors.  If the input string is empty, the
-// `DefaultFormat` is used.
+// `DefaultDescriptors` is used.
 // The return value is an array of tab-separated strings, to easily use the
 // output for column-based formatting (e.g., with the `text/tabwriter` package).
-func ProcessInfo(format string) ([]string, error) {
-	formatDescriptors, err := parseDescriptors(format)
+func ProcessInfo(descriptors []string) ([][]string, error) {
+	aixDescriptors, err := translateDescriptors(descriptors)
 	if err != nil {
 		return nil, err
 	}
@@ -325,7 +324,7 @@ func ProcessInfo(format string) ([]string, error) {
 		return nil, err
 	}
 
-	return processDescriptors(formatDescriptors, processes)
+	return processDescriptors(aixDescriptors, processes)
 }
 
 // setHostProcesses sets `hostProcesses`.
@@ -354,14 +353,14 @@ func setHostProcesses(pid string) error {
 
 // processDescriptors calls each `procFn` of all formatDescriptors on each
 // process and returns an array of tab-separated strings.
-func processDescriptors(formatDescriptors []aixFormatDescriptor, processes []*process.Process) ([]string, error) {
-	data := []string{}
+func processDescriptors(formatDescriptors []aixFormatDescriptor, processes []*process.Process) ([][]string, error) {
+	data := [][]string{}
 	// create header
-	headerArr := []string{}
+	header := []string{}
 	for _, desc := range formatDescriptors {
-		headerArr = append(headerArr, desc.header)
+		header = append(header, desc.header)
 	}
-	data = append(data, strings.Join(headerArr, "\t"))
+	data = append(data, header)
 
 	// dispatch all descriptor functions on each process
 	for _, proc := range processes {
@@ -373,7 +372,7 @@ func processDescriptors(formatDescriptors []aixFormatDescriptor, processes []*pr
 			}
 			pData = append(pData, dataStr)
 		}
-		data = append(data, strings.Join(pData, "\t"))
+		data = append(data, pData)
 	}
 
 	return data, nil
