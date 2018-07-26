@@ -64,6 +64,8 @@ The ps library is compatible with all AIX format descriptors of the ps command-l
   - Current security attributes of the process.
 - **seccomp**
   - Seccomp mode of the process (i.e., disabled, strict or filter). See seccomp(2) for more information.
+- **state**
+  - Process state codes (e.g, **R** for *running*, **S** for *sleeping*). See proc(5) for more information.
 
 We can try out different format descriptors with the psgo binary:
 

@@ -84,3 +84,15 @@
 
 	docker rm -f $ID
 }
+
+@test "Join namespace of a Docker container and check the process state" {
+	ID="$(docker run -d alpine sleep 100)"
+	PID="$(docker inspect --format '{{.State.Pid}}' $ID)"
+
+	run sudo ./bin/psgo -pid $PID -format "pid, state"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} == "PID   STATE" ]]
+	[[ ${lines[1]} =~ "1     S" ]]
+
+	docker rm -f $ID
+}

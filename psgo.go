@@ -230,6 +230,11 @@ var (
 			onHost: true,
 			procFn: processHGROUP,
 		},
+		{
+			normal: "state",
+			header: "STATE",
+			procFn: processState,
+		},
 	}
 )
 
@@ -627,4 +632,9 @@ func processHGROUP(p *process.Process) (string, error) {
 		return hp.Hgroup, nil
 	}
 	return "?", nil
+}
+
+// processState returns the process state of process p.
+func processState(p *process.Process) (string, error) {
+	return p.Status.State, nil
 }
