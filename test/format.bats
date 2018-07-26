@@ -225,8 +225,14 @@ function is_labeling_enabled() {
 	[[ ${lines[0]} =~ "LABEL" ]]
 }
 
+@test "STATE header" {
+	run ./bin/psgo -format "state"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} =~ "STATE" ]]
+}
+
 @test "ALL header" {
-	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capinh, capprm, capeff, capbnd, seccomp, hpid, huser, hgroup"
+	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capinh, capprm, capeff, capbnd, seccomp, hpid, huser, hgroup, state"
 	[ "$status" -eq 0 ]
 
 	[[ ${lines[0]} =~ "%CPU" ]]
@@ -247,4 +253,5 @@ function is_labeling_enabled() {
 	[[ ${lines[0]} =~ "HPID" ]]
 	[[ ${lines[0]} =~ "HUSER" ]]
 	[[ ${lines[0]} =~ "HGROUP" ]]
+	[[ ${lines[0]} =~ "STATE" ]]
 }
