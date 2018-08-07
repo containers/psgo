@@ -183,7 +183,7 @@ func ParseStatus(pid string) (*Status, error) {
 	}
 
 	s := Status{}
-	errUnexpectedInput := errors.New(fmt.Sprintf("unexpected input from %s", path))
+	errUnexpectedInput := fmt.Errorf("unexpected input from %s", path)
 	for _, line := range lines {
 		fields := strings.Fields(line)
 		if len(fields) < 2 {
