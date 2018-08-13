@@ -10,6 +10,9 @@ This library aims to make things a bit more comfortable, especially for containe
  - `psgo.ProcessInfo(descriptors []string) ([][]string, error)`
    - ProcessInfo returns the process information of all processes in the current mount namespace. The input descriptors must be a slice of supported AIX format descriptors in the normal form or in the code form, if supported.  If the input descriptor slice is empty, the `psgo.DefaultDescriptors` are used. The return value contains the string slice of process data, one per process.
 
+ - `psgo.ProcessInfoByPids(pids []string, descriptors []string) ([][]string, error)`
+   - ProcessInfoByPids is similar to `psgo.ProcessInfo`, but limits the return value to a list of specified pids. The pids input must be a slice of PIDs for which process information should be returned. If the input descriptor slice is empty, only the format descriptor headers are returned.
+
  - `psgo.JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, error)`
    - JoinNamespaceAndProcessInfo has the same semantics as ProcessInfo but joins the mount namespace of the specified pid before extracting data from /proc.  This way, we can extract the `/proc` data from a container without executing any command inside the container.
 
@@ -26,6 +29,17 @@ root         1       0       0.064    6h3m27.677997443s    ?        13.98s      
 root         2       0       0.000    6h3m27.678380128s    ?        20ms        [kthreadd]
 root         4       2       0.000    6h3m27.678701852s    ?        0s          [kworker/0:0H]
 root         6       2       0.000    6h3m27.678999508s    ?        0s          [mm_percpu_wq]
+```
+
+### Listing processes
+You can use the `--pids` flag to restrict `psgo` output to a subset of processes. This option accepts a list of comma separate process IDs and will return exactly the same kind of information per process as the default output.
+
+```
+$ ./bin/psgo --pids 1,$(pgrep bash | tr "\n" ",")
+USER   PID     PPID    %CPU    ELAPSED                TTY     TIME   COMMAND 
+root   1       0       0.009   128h52m44.193475932s   ?       40s    systemd
+root   20830   20827   0.000   105h2m44.19579679s     pts/5   0s     bash
+root   25843   25840   0.000   102h56m4.196072027s    pts/6   0s     bash
 ```
 
 ### Listing processes within a container
