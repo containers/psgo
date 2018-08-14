@@ -183,23 +183,28 @@ var (
 			procFn: processVSZ,
 		},
 		{
+			normal: "capamb",
+			header: "CAPAMBIENT",
+			procFn: processCAPAMB,
+		},
+		{
 			normal: "capinh",
-			header: "CAPABILITIES",
+			header: "CAPINHERITED",
 			procFn: processCAPINH,
 		},
 		{
 			normal: "capprm",
-			header: "CAPABILITIES",
+			header: "CAPPERMITTED",
 			procFn: processCAPPRM,
 		},
 		{
 			normal: "capeff",
-			header: "CAPABILITIES",
+			header: "CAPEFFECTIVE",
 			procFn: processCAPEFF,
 		},
 		{
 			normal: "capbnd",
-			header: "CAPABILITIES",
+			header: "CAPBOUNDING",
 			procFn: processCAPBND,
 		},
 		{
@@ -555,6 +560,13 @@ func parseCAP(cap string) (string, error) {
 	}
 	sort.Strings(caps)
 	return strings.Join(caps, ","), nil
+}
+
+// processCAPAMB returns the set of ambient capabilties associated with
+// process p.  If all capabilties are set, "full" is returned.  If no
+// capability is enabled, "none" is returned.
+func processCAPAMB(p *process.Process) (string, error) {
+	return parseCAP(p.Status.CapAmb)
 }
 
 // processCAPINH returns the set of inheritable capabilties associated with
