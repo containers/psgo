@@ -1,4 +1,4 @@
-#!/usr/bin/env bats -t
+	#!/usr/bin/env bats -t
 
 @test "Join namespace of a Docker container" {
 	ID="$(docker run -d alpine sleep 100)"
@@ -29,7 +29,7 @@
 
 	run sudo ./bin/psgo -pid $PID -format "pid, capeff"
 	[ "$status" -eq 0 ]
-	[[ ${lines[0]} == "PID   CAPABILITIES" ]]
+	[[ ${lines[0]} == "PID   EFFECTIVE CAPABILITIES" ]]
 	[[ ${lines[1]} =~ "1     full" ]]
 
 	docker rm -f $ID

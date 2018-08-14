@@ -153,6 +153,12 @@
 	[[ ${lines[0]} =~ "VSZ" ]]
 }
 
+@test "CAPAMB header" {
+	run ./bin/psgo -format "capamb"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} =~ "CAPABILITIES" ]]
+}
+
 @test "CAPINH header" {
 	run ./bin/psgo -format "capinh"
 	[ "$status" -eq 0 ]
@@ -232,7 +238,7 @@ function is_labeling_enabled() {
 }
 
 @test "ALL header" {
-	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capinh, capprm, capeff, capbnd, seccomp, hpid, huser, hgroup, state"
+	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capamb, capinh, capprm, capeff, capbnd, seccomp, hpid, huser, hgroup, state"
 	[ "$status" -eq 0 ]
 
 	[[ ${lines[0]} =~ "%CPU" ]]
