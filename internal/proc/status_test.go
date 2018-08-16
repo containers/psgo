@@ -64,14 +64,8 @@ voluntary_ctxt_switches:        150
 nonvoluntary_ctxt_switches:     545
 `
 
-func testReadStatus(_ string) ([]string, error) {
-	return strings.Split(statusFile, "\n"), nil
-}
-
 func TestParseStatus(t *testing.T) {
-	readStatus = testReadStatus
-
-	s, err := ParseStatus("")
+	s, err := parseStatus("testpid", strings.Split(statusFile, "\n"))
 
 	assert.Nil(t, err)
 	assert.NotNil(t, s)
