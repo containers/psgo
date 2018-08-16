@@ -185,27 +185,27 @@ var (
 		},
 		{
 			normal: "capamb",
-			header: "CAPAMBIENT",
+			header: "AMBIENT CAPS",
 			procFn: processCAPAMB,
 		},
 		{
 			normal: "capinh",
-			header: "CAPINHERITED",
+			header: "INHERITED CAPS",
 			procFn: processCAPINH,
 		},
 		{
 			normal: "capprm",
-			header: "CAPPERMITTED",
+			header: "PERMITTED CAPS",
 			procFn: processCAPPRM,
 		},
 		{
 			normal: "capeff",
-			header: "CAPEFFECTIVE",
+			header: "EFFECTIVE CAPS",
 			procFn: processCAPEFF,
 		},
 		{
 			normal: "capbnd",
-			header: "CAPBOUNDING",
+			header: "BOUNDING CAPS",
 			procFn: processCAPBND,
 		},
 		{
@@ -450,14 +450,14 @@ func processPPID(p *process.Process) (string, error) {
 }
 
 // processUSER returns the effective user name of the process.  This will be
-// the textual group ID, if it can be optained, or a decimal representation
+// the textual user ID, if it can be optained, or a decimal representation
 // otherwise.
 func processUSER(p *process.Process) (string, error) {
 	return process.LookupUID(p.Status.Uids[1])
 }
 
 // processRUSER returns the effective user name of the process.  This will be
-// the textual group ID, if it can be optained, or a decimal representation
+// the textual user ID, if it can be optained, or a decimal representation
 // otherwise.
 func processRUSER(p *process.Process) (string, error) {
 	return process.LookupUID(p.Status.Uids[0])

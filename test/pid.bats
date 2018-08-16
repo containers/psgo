@@ -37,7 +37,7 @@ function is_podman_available() {
 
 	run sudo ./bin/psgo -pid $PID -format "pid, capeff"
 	[ "$status" -eq 0 ]
-	[[ ${lines[0]} == "PID   CAPEFFECTIVE" ]]
+	[[ ${lines[0]} == "PID   EFFECTIVE CAPS" ]]
 	[[ ${lines[1]} =~ "1     full" ]]
 
 	docker rm -f $ID
