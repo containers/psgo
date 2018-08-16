@@ -153,28 +153,34 @@
 	[[ ${lines[0]} =~ "VSZ" ]]
 }
 
+@test "CAPAMB header" {
+	run ./bin/psgo -format "capamb"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} =~ "CAPAMBIENT" ]]
+}
+
 @test "CAPINH header" {
 	run ./bin/psgo -format "capinh"
 	[ "$status" -eq 0 ]
-	[[ ${lines[0]} =~ "CAPABILITIES" ]]
+	[[ ${lines[0]} =~ "CAPINHERITED" ]]
 }
 
 @test "CAPPRM header" {
 	run ./bin/psgo -format "capprm"
 	[ "$status" -eq 0 ]
-	[[ ${lines[0]} =~ "CAPABILITIES" ]]
+	[[ ${lines[0]} =~ "CAPPERMITTED" ]]
 }
 
 @test "CAPEFF header" {
 	run ./bin/psgo -format "capeff"
 	[ "$status" -eq 0 ]
-	[[ ${lines[0]} =~ "CAPABILITIES" ]]
+	[[ ${lines[0]} =~ "CAPEFFECTIVE" ]]
 }
 
 @test "CAPBND header" {
 	run ./bin/psgo -format "capbnd"
 	[ "$status" -eq 0 ]
-	[[ ${lines[0]} =~ "CAPABILITIES" ]]
+	[[ ${lines[0]} =~ "CAPBOUNDING" ]]
 }
 
 @test "SECCOMP header" {
@@ -232,7 +238,7 @@ function is_labeling_enabled() {
 }
 
 @test "ALL header" {
-	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capinh, capprm, capeff, capbnd, seccomp, hpid, huser, hgroup, state"
+	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capamb, capinh, capprm, capeff, capbnd, seccomp, hpid, huser, hgroup, state"
 	[ "$status" -eq 0 ]
 
 	[[ ${lines[0]} =~ "%CPU" ]]
@@ -249,6 +255,11 @@ function is_labeling_enabled() {
 	[[ ${lines[0]} =~ "TIME" ]]
 	[[ ${lines[0]} =~ "TTY" ]]
 	[[ ${lines[0]} =~ "VSZ" ]]
+	[[ ${lines[0]} =~ "CAPAMBIENT" ]]
+	[[ ${lines[0]} =~ "CAPINHERITED" ]]
+	[[ ${lines[0]} =~ "CAPPERMITTED" ]]
+	[[ ${lines[0]} =~ "CAPEFFECTIVE" ]]
+	[[ ${lines[0]} =~ "CAPBOUNDING" ]]
 	[[ ${lines[0]} =~ "SECCOMP" ]]
 	[[ ${lines[0]} =~ "HPID" ]]
 	[[ ${lines[0]} =~ "HUSER" ]]

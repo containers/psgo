@@ -29,7 +29,7 @@
 
 	run sudo ./bin/psgo -pid $PID -format "pid, capeff"
 	[ "$status" -eq 0 ]
-	[[ ${lines[0]} == "PID   CAPABILITIES" ]]
+	[[ ${lines[0]} == "PID   CAPEFFECTIVE" ]]
 	[[ ${lines[1]} =~ "1     full" ]]
 
 	docker rm -f $ID
