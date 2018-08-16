@@ -25,6 +25,7 @@ import (
 	"github.com/containers/psgo/internal/dev"
 	"github.com/containers/psgo/internal/proc"
 	"github.com/containers/psgo/internal/process"
+	"github.com/containers/psgo/internal/types"
 	"github.com/pkg/errors"
 	"golang.org/x/sys/unix"
 )
@@ -276,6 +277,19 @@ func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, 
 		defer wg.Done()
 		runtime.LockOSThread()
 
+		// extract user namespaces prior to joining the mount namespace
+		currentUserNs, err := proc.ParseUserNamespace("self")
+		if err != nil {
+			dataErr = errors.Wrapf(err, "error determining user namespace")
+			return
+		}
+
+		pidUserNs, err := proc.ParseUserNamespace(pid)
+		if err != nil {
+			dataErr = errors.Wrapf(err, "error determining user namespace of PID %s", pid)
+		}
+
+		// join the mount namespace of pid
 		fd, err := os.Open(fmt.Sprintf("/proc/%s/ns/mnt", pid))
 		if err != nil {
 			dataErr = err
@@ -290,12 +304,19 @@ func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, 
 		}
 		unix.Setns(int(fd.Fd()), unix.CLONE_NEWNS)
 
+		// extract all pids mentioned in pid's mount namespace
 		pids, err := proc.GetPIDs()
 		if err != nil {
 			dataErr = err
 			return
 		}
-		processes, err := process.FromPIDs(pids)
+
+		ctx := types.PsContext{
+			// join the user NS if the pid's user NS is different
+			// to the caller's user NS.
+			JoinUserNS: currentUserNs != pidUserNs,
+		}
+		processes, err := process.FromPIDs(&ctx, pids)
 		if err != nil {
 			dataErr = err
 			return
@@ -324,7 +345,9 @@ func ProcessInfo(descriptors []string) ([][]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	processes, err := process.FromPIDs(pids)
+
+	ctx := types.PsContext{JoinUserNS: false}
+	processes, err := process.FromPIDs(&ctx, pids)
 	if err != nil {
 		return nil, err
 	}
@@ -340,7 +363,8 @@ func setHostProcesses(pid string) error {
 		return err
 	}
 
-	processes, err := process.FromPIDs(pids)
+	ctx := types.PsContext{JoinUserNS: false}
+	processes, err := process.FromPIDs(&ctx, pids)
 	if err != nil {
 		return err
 	}

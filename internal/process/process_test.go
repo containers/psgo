@@ -3,12 +3,13 @@ package process
 import (
 	"testing"
 
+	"github.com/containers/psgo/internal/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAll(t *testing.T) {
 	// no thorough test but it makes sure things are working
-	p, err := New("self")
+	p, err := New(&types.PsContext{}, "self")
 	assert.Nil(t, err)
 
 	assert.NotNil(t, p.Stat)
