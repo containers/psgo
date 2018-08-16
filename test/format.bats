@@ -156,31 +156,31 @@
 @test "CAPAMB header" {
 	run ./bin/psgo -format "capamb"
 	[ "$status" -eq 0 ]
-	[[ ${lines[0]} =~ "CAPAMBIENT" ]]
+	[[ ${lines[0]} =~ "AMBIENT CAPS" ]]
 }
 
 @test "CAPINH header" {
 	run ./bin/psgo -format "capinh"
 	[ "$status" -eq 0 ]
-	[[ ${lines[0]} =~ "CAPINHERITED" ]]
+	[[ ${lines[0]} =~ "INHERITED CAPS" ]]
 }
 
 @test "CAPPRM header" {
 	run ./bin/psgo -format "capprm"
 	[ "$status" -eq 0 ]
-	[[ ${lines[0]} =~ "CAPPERMITTED" ]]
+	[[ ${lines[0]} =~ "PERMITTED CAPS" ]]
 }
 
 @test "CAPEFF header" {
 	run ./bin/psgo -format "capeff"
 	[ "$status" -eq 0 ]
-	[[ ${lines[0]} =~ "CAPEFFECTIVE" ]]
+	[[ ${lines[0]} =~ "EFFECTIVE CAPS" ]]
 }
 
 @test "CAPBND header" {
 	run ./bin/psgo -format "capbnd"
 	[ "$status" -eq 0 ]
-	[[ ${lines[0]} =~ "CAPBOUNDING" ]]
+	[[ ${lines[0]} =~ "BOUNDING CAPS" ]]
 }
 
 @test "SECCOMP header" {
@@ -255,11 +255,11 @@ function is_labeling_enabled() {
 	[[ ${lines[0]} =~ "TIME" ]]
 	[[ ${lines[0]} =~ "TTY" ]]
 	[[ ${lines[0]} =~ "VSZ" ]]
-	[[ ${lines[0]} =~ "CAPAMBIENT" ]]
-	[[ ${lines[0]} =~ "CAPINHERITED" ]]
-	[[ ${lines[0]} =~ "CAPPERMITTED" ]]
-	[[ ${lines[0]} =~ "CAPEFFECTIVE" ]]
-	[[ ${lines[0]} =~ "CAPBOUNDING" ]]
+	[[ ${lines[0]} =~ "AMBIENT CAPS" ]]
+	[[ ${lines[0]} =~ "INHERITED CAPS" ]]
+	[[ ${lines[0]} =~ "PERMITTED CAPS" ]]
+	[[ ${lines[0]} =~ "EFFECTIVE CAPS" ]]
+	[[ ${lines[0]} =~ "BOUNDING CAPS" ]]
 	[[ ${lines[0]} =~ "SECCOMP" ]]
 	[[ ${lines[0]} =~ "HPID" ]]
 	[[ ${lines[0]} =~ "HUSER" ]]
