@@ -21,6 +21,7 @@ func main() {
 	pid := flag.String("pid", "", "join mount namespace of the process ID")
 	format := flag.String("format", "", "ps(1) AIX format comma-separated string")
 	list := flag.Bool("list", false, "list all supported descriptors")
+	noheader := flag.Bool("noheader", false, "do not print out header")
 
 	flag.Parse()
 
@@ -34,12 +35,12 @@ func main() {
 	}
 
 	if *pid != "" {
-		data, err = psgo.JoinNamespaceAndProcessInfo(*pid, descriptors)
+		data, err = psgo.JoinNamespaceAndProcessInfo(*pid, descriptors, !*noheader)
 		if err != nil {
 			logrus.Panic(err)
 		}
 	} else {
-		data, err = psgo.ProcessInfo(descriptors)
+		data, err = psgo.ProcessInfo(descriptors, !*noheader)
 		if err != nil {
 			logrus.Panic(err)
 		}

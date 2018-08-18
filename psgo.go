@@ -256,7 +256,7 @@ func ListDescriptors() (list []string) {
 
 // JoinNamespaceAndProcessInfo has the same semantics as ProcessInfo but joins
 // the mount namespace of the specified pid before extracting data from `/proc`.
-func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, error) {
+func JoinNamespaceAndProcessInfo(pid string, descriptors []string, header bool) ([][]string, error) {
 	var (
 		data    [][]string
 		dataErr error
@@ -327,7 +327,7 @@ func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, 
 			return
 		}
 
-		data, dataErr = processDescriptors(aixDescriptors, processes)
+		data, dataErr = processDescriptors(aixDescriptors, processes, header)
 	}()
 	wg.Wait()
 
@@ -340,7 +340,7 @@ func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, 
 // `DefaultDescriptors` is used.
 // The return value is an array of tab-separated strings, to easily use the
 // output for column-based formatting (e.g., with the `text/tabwriter` package).
-func ProcessInfo(descriptors []string) ([][]string, error) {
+func ProcessInfo(descriptors []string, header bool) ([][]string, error) {
 	aixDescriptors, err := translateDescriptors(descriptors)
 	if err != nil {
 		return nil, err
@@ -357,7 +357,7 @@ func ProcessInfo(descriptors []string) ([][]string, error) {
 		return nil, err
 	}
 
-	return processDescriptors(aixDescriptors, processes)
+	return processDescriptors(aixDescriptors, processes, header)
 }
 
 // setHostProcesses sets `hostProcesses`.
@@ -387,15 +387,16 @@ func setHostProcesses(pid string) error {
 
 // processDescriptors calls each `procFn` of all formatDescriptors on each
 // process and returns an array of tab-separated strings.
-func processDescriptors(formatDescriptors []aixFormatDescriptor, processes []*process.Process) ([][]string, error) {
+func processDescriptors(formatDescriptors []aixFormatDescriptor, processes []*process.Process, header bool) ([][]string, error) {
 	data := [][]string{}
 	// create header
-	header := []string{}
-	for _, desc := range formatDescriptors {
-		header = append(header, desc.header)
+	if header {
+		header := []string{}
+		for _, desc := range formatDescriptors {
+			header = append(header, desc.header)
+		}
+		data = append(data, header)
 	}
-	data = append(data, header)
-
 	// dispatch all descriptor functions on each process
 	for _, proc := range processes {
 		pData := []string{}

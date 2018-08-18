@@ -31,6 +31,17 @@ function is_podman_available() {
 	docker rm -f $ID
 }
 
+@test "Join namespace of a Docker container and format with -noheader" {
+	ID="$(docker run -d alpine sleep 100)"
+	PID="$(docker inspect --format '{{.State.Pid}}' $ID)"
+
+	run sudo ./bin/psgo -pid $PID -format "pid, group, args" -noheader
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} =~ "1     root    sleep 100" ]]
+
+	docker rm -f $ID
+}
+
 @test "Join namespace of a Docker container and check capabilities" {
 	ID="$(docker run --privileged -d alpine sleep 100)"
 	PID="$(docker inspect --format '{{.State.Pid}}' $ID)"
