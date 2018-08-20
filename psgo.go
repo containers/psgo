@@ -334,6 +334,48 @@ func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, 
 	return data, dataErr
 }
 
+// JoinNamespaceAndProcessInfoByPids has similar semantics to
+// JoinNamespaceAndProcessInfo and avoids duplicate entries by joining a giving
+// PID namepsace only once.
+func JoinNamespaceAndProcessInfoByPids(pids []string, descriptors []string) ([][]string, error) {
+	// Extracting data from processes that share the same PID namespace
+	// would yield duplicate results.  Avoid that by extracting data only
+	// from the first process in `pids` from a given PID namespace.
+	// `nsMap` is used for quick lookups if a given PID namespace is
+	// already covered, `pidList` is used to preserve the order which is
+	// not guaranteed by nondeterministic maps in golang.
+	nsMap := make(map[string]bool)
+	pidList := []string{}
+	for _, pid := range pids {
+		ns, err := proc.ParsePIDNamespace(pid)
+		if err != nil {
+			if os.IsNotExist(err) {
+				// catch race conditions
+				continue
+			}
+			return nil, errors.Wrapf(err, "error extracing PID namespace")
+		}
+		if _, exists := nsMap[ns]; !exists {
+			nsMap[ns] = true
+			pidList = append(pidList, pid)
+		}
+	}
+
+	data := [][]string{}
+	for i, pid := range pidList {
+		pidData, err := JoinNamespaceAndProcessInfo(pid, descriptors)
+		if err != nil {
+			return nil, err
+		}
+		if i == 0 {
+			data = append(data, pidData[0])
+		}
+		data = append(data, pidData[1:]...)
+	}
+
+	return data, nil
+}
+
 // ProcessInfo returns the process information of all processes in the current
 // mount namespace. The input format must be a comma-separated list of
 // supported AIX format descriptors.  If the input string is empty, the

@@ -16,6 +16,9 @@ This library aims to make things a bit more comfortable, especially for containe
  - `psgo.JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, error)`
    - JoinNamespaceAndProcessInfo has the same semantics as ProcessInfo but joins the mount namespace of the specified pid before extracting data from /proc.  This way, we can extract the `/proc` data from a container without executing any command inside the container.
 
+ - `psgo.JoinNamespaceAndProcessInfoByPids(pids []string, descriptors []string) ([][]string, error)`
+   - JoinNamespaceAndProcessInfoByPids is similar to `psgo.JoinNamespaceAndProcessInfo` but takes a slice of pids as an argument.  To avoid duplicate entries (e.g., when two or more containers share the same PID namespace), a given PID namespace will be joined only once.
+
  - `psgo.ListDescriptors() []string`
    - ListDescriptors returns a sorted string slice of all supported AIX format descriptors in the normal form (e.g., "args,comm,user").  It can be useful in the context of bash-completion, help messages, etc.
 
@@ -36,7 +39,7 @@ You can use the `--pids` flag to restrict `psgo` output to a subset of processes
 
 ```
 $ ./bin/psgo --pids 1,$(pgrep bash | tr "\n" ",")
-USER   PID     PPID    %CPU    ELAPSED                TTY     TIME   COMMAND 
+USER   PID     PPID    %CPU    ELAPSED                TTY     TIME   COMMAND
 root   1       0       0.009   128h52m44.193475932s   ?       40s    systemd
 root   20830   20827   0.000   105h2m44.19579679s     pts/5   0s     bash
 root   25843   25840   0.000   102h56m4.196072027s    pts/6   0s     bash
@@ -52,7 +55,7 @@ $ docker run -d alpine sleep 100
 $ docker inspect --format '{{.State.Pid}}' 473c9
 5572
 
-$ sudo ./bin/psgo -pid 5572
+$ sudo ./bin/psgo -pids 5572 -join
 USER   PID   PPID   %CPU    ELAPSED         TTY   TIME   COMMAND
 root   1     0      0.000   17.249905587s   ?     0s     sleep
 ```
