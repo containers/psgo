@@ -341,12 +341,18 @@ func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, 
 // The return value is an array of tab-separated strings, to easily use the
 // output for column-based formatting (e.g., with the `text/tabwriter` package).
 func ProcessInfo(descriptors []string) ([][]string, error) {
-	aixDescriptors, err := translateDescriptors(descriptors)
+	pids, err := proc.GetPIDs()
 	if err != nil {
 		return nil, err
 	}
 
-	pids, err := proc.GetPIDs()
+	return ProcessInfoByPids(pids, descriptors)
+}
+
+// ProcessInfoByPids is like ProcessInfo, but the process information returned
+// is limited to a list of user specified PIDs.
+func ProcessInfoByPids(pids []string, descriptors []string) ([][]string, error) {
+	aixDescriptors, err := translateDescriptors(descriptors)
 	if err != nil {
 		return nil, err
 	}

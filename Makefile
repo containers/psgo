@@ -4,7 +4,7 @@ BUILD_DIR := ./bin
 BIN_DIR := /usr/local/bin
 NAME := psgo
 PROJECT := github.com/containers/psgo
-
+BATS_TESTS := *.bats
 GO_SRC=$(shell find . -name \*.go)
 
 all: validate build
@@ -37,7 +37,7 @@ test: test-unit test-integration
 
 .PHONY: test-integration
 test-integration:
-	bats test/*.bats
+	bats test/$(BATS_TESTS)
 
 .PHONY: test-unit
 test-unit:
