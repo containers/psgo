@@ -25,7 +25,7 @@
 	[[ ${lines[0]} =~ ^PID\ +COMMAND$ ]]
 	for (( i=1; i<=$nCtrs; i++ )); do
 		[[ ${lines[$i]} =~ ^${pidsList[$i]}\ +sleep$ ]]
-	    docker rm -f ${ctridList[$i]}
+		docker rm -f ${ctridList[$i]}
 	done
 }
 
@@ -55,6 +55,6 @@
 	[[ ${lines[0]} =~ ^USER\ +GROUP\ +PID\ +PPID\ +TTY\ +NI\ +EFFECTIVE\ CAPS$ ]]
 
 	for (( i=1; i<=$nCtrs; i++ )); do
-	    docker rm -f ${ctridList[$i]}
+		docker rm -f ${ctridList[$i]}
 	done
 }

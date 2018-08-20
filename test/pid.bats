@@ -87,15 +87,15 @@ function is_podman_available() {
 		skip "skip this test since Podman is not available."
 	fi
 
-	ID="$(podman run -d --uidmap=0:300000:70000 --gidmap=0:100000:70000 alpine sleep 100)"
-	PID="$(podman inspect --format '{{.State.Pid}}' $ID)"
+	ID="$(sudo podman run -d --uidmap=0:300000:70000 --gidmap=0:100000:70000 alpine sleep 100)"
+	PID="$(sudo podman inspect --format '{{.State.Pid}}' $ID)"
 
 	run sudo ./bin/psgo -pid $PID -format "pid, user, huser, group, hgroup"
 	[ "$status" -eq 0 ]
 	[[ ${lines[0]} == "PID   USER   HUSER    GROUP   HGROUP" ]]
 	[[ ${lines[1]} =~ "1     root   300000   root    100000" ]]
 
-	podman rm -f $ID
+	sudo podman rm -f $ID
 }
 
 @test "Join namespace of a Docker container and extract effective host group ID" {
