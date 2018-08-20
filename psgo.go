@@ -476,22 +476,20 @@ func processName(p *process.Process) (string, error) {
 
 // processARGS returns the command of p with all its arguments.
 func processARGS(p *process.Process) (string, error) {
-	args := p.CmdLine
 	// ps (1) returns "[$name]" if command/args are empty
-	if len(args) == 0 {
+	if p.CmdLine[0] == "" {
 		return processName(p)
 	}
-	return strings.Join(args, " "), nil
+	return strings.Join(p.CmdLine, " "), nil
 }
 
 // processCOMM returns the command name (i.e., executable name) of process p.
 func processCOMM(p *process.Process) (string, error) {
-	args := p.CmdLine
 	// ps (1) returns "[$name]" if command/args are empty
-	if len(args) == 0 {
+	if p.CmdLine[0] == "" {
 		return processName(p)
 	}
-	spl := strings.Split(args[0], "/")
+	spl := strings.Split(p.CmdLine[0], "/")
 	return spl[len(spl)-1], nil
 }
 
