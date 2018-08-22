@@ -12,7 +12,7 @@ function is_podman_available() {
 	ID="$(docker run -d alpine sleep 100)"
 	PID="$(docker inspect --format '{{.State.Pid}}' $ID)"
 
-	run sudo ./bin/psgo -pid $PID
+	run sudo ./bin/psgo -pids $PID -join
 	[ "$status" -eq 0 ]
 	[[ ${lines[1]} =~ "sleep" ]]
 
@@ -23,7 +23,7 @@ function is_podman_available() {
 	ID="$(docker run -d alpine sleep 100)"
 	PID="$(docker inspect --format '{{.State.Pid}}' $ID)"
 
-	run sudo ./bin/psgo -pid $PID -format "pid, group, args"
+	run sudo ./bin/psgo -pids $PID -join -format "pid, group, args"
 	[ "$status" -eq 0 ]
 	[[ ${lines[0]} == "PID   GROUP   COMMAND" ]]
 	[[ ${lines[1]} =~ "1     root    sleep 100" ]]
@@ -35,7 +35,7 @@ function is_podman_available() {
 	ID="$(docker run --privileged -d alpine sleep 100)"
 	PID="$(docker inspect --format '{{.State.Pid}}' $ID)"
 
-	run sudo ./bin/psgo -pid $PID -format "pid, capeff"
+	run sudo ./bin/psgo -pids $PID -join -format "pid, capeff"
 	[ "$status" -eq 0 ]
 	[[ ${lines[0]} == "PID   EFFECTIVE CAPS" ]]
 	[[ ${lines[1]} =~ "1     full" ]]
@@ -49,7 +49,7 @@ function is_podman_available() {
 	ID="$(docker run -d --privileged alpine sleep 100)"
 	PID="$(docker inspect --format '{{.State.Pid}}' $ID)"
 
-	run sudo ./bin/psgo -pid $PID -format "pid, seccomp"
+	run sudo ./bin/psgo -pids $PID --join -format "pid, seccomp"
 	[ "$status" -eq 0 ]
 	[[ ${lines[0]} == "PID   SECCOMP" ]]
 	[[ ${lines[1]} =~ "1     disabled" ]]
@@ -61,7 +61,7 @@ function is_podman_available() {
 	ID="$(docker run -d alpine sleep 100)"
 	PID="$(docker inspect --format '{{.State.Pid}}' $ID)"
 
-	run sudo ./bin/psgo -pid $PID -format "pid, hpid"
+	run sudo ./bin/psgo -pids $PID -join -format "pid, hpid"
 	[ "$status" -eq 0 ]
 	[[ ${lines[0]} == "PID   HPID" ]]
 	[[ ${lines[1]} =~ "1     $PID" ]]
@@ -73,7 +73,7 @@ function is_podman_available() {
 	ID="$(docker run -d alpine sleep 100)"
 	PID="$(docker inspect --format '{{.State.Pid}}' $ID)"
 
-	run sudo ./bin/psgo -pid $PID -format "pid, huser"
+	run sudo ./bin/psgo -pids $PID -join -format "pid, huser"
 	[ "$status" -eq 0 ]
 	[[ ${lines[0]} == "PID   HUSER" ]]
 	[[ ${lines[1]} =~ "1     root" ]]
@@ -90,7 +90,7 @@ function is_podman_available() {
 	ID="$(sudo podman run -d --uidmap=0:300000:70000 --gidmap=0:100000:70000 alpine sleep 100)"
 	PID="$(sudo podman inspect --format '{{.State.Pid}}' $ID)"
 
-	run sudo ./bin/psgo -pid $PID -format "pid, user, huser, group, hgroup"
+	run sudo ./bin/psgo -pids $PID -join -format "pid, user, huser, group, hgroup"
 	[ "$status" -eq 0 ]
 	[[ ${lines[0]} == "PID   USER   HUSER    GROUP   HGROUP" ]]
 	[[ ${lines[1]} =~ "1     root   300000   root    100000" ]]
@@ -102,7 +102,7 @@ function is_podman_available() {
 	ID="$(docker run -d alpine sleep 100)"
 	PID="$(docker inspect --format '{{.State.Pid}}' $ID)"
 
-	run sudo ./bin/psgo -pid $PID -format "pid, hgroup"
+	run sudo ./bin/psgo -pids $PID -join -format "pid, hgroup"
 	[ "$status" -eq 0 ]
 	[[ ${lines[0]} == "PID   HGROUP" ]]
 	[[ ${lines[1]} =~ "1     root" ]]
@@ -114,10 +114,35 @@ function is_podman_available() {
 	ID="$(docker run -d alpine sleep 100)"
 	PID="$(docker inspect --format '{{.State.Pid}}' $ID)"
 
-	run sudo ./bin/psgo -pid $PID -format "pid, state"
+	run sudo ./bin/psgo -pids $PID -join -format "pid, state"
 	[ "$status" -eq 0 ]
 	[[ ${lines[0]} == "PID   STATE" ]]
 	[[ ${lines[1]} =~ "1     S" ]]
 
 	docker rm -f $ID
+}
+
+@test "Run Podman pod and check for redundant entries" {
+	enabled=$(is_podman_available)
+	if [[ "$enabled" -eq 0 ]]; then
+		skip "skip this test since Podman is not available."
+	fi
+
+	POD_ID="$(sudo podman pod create)"
+	ID_1="$(sudo podman run --pod $POD_ID -d alpine sleep 111)"
+	PID_1="$(sudo podman inspect --format '{{.State.Pid}}' $ID_1)"
+	ID_2="$(sudo podman run --pod $POD_ID -d alpine sleep 222)"
+	PID_2="$(sudo podman inspect --format '{{.State.Pid}}' $ID_2)"
+
+	# The underlying idea is that is that we had redundant entries if
+	# the detection of PID namespaces wouldn't work correctly.
+	run sudo ./bin/psgo -pids "$PID_1,$PID_2" -join -format "pid, args"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} == "PID   COMMAND" ]]
+	[[ ${lines[1]} =~ "1     sleep 111" ]]
+	[[ ${lines[2]} =~ "1     sleep 222" ]]
+	[[ ${lines[3]} = "" ]]
+
+	sudo podman rm -f $ID_1 $ID_2
+	sudo podman pod rm $POD_ID
 }
