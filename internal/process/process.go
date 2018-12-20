@@ -108,7 +108,7 @@ func FromPIDs(ctx *types.PsContext, pids []string) ([]*Process, error) {
 	for _, pid := range pids {
 		p, err := New(ctx, pid)
 		if err != nil {
-			if os.IsNotExist(err) {
+			if os.IsNotExist(errors.Cause(err)) {
 				// proc parsing is racy
 				// Let's ignore "does not exist" errors
 				continue
