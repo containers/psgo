@@ -48,6 +48,8 @@ type psContext struct {
 	containersProcesses []*process.Process
 	// Processes on the host.  Used to map those to the ones running in the container.
 	hostProcesses []*process.Process
+	// tty and pty devices.
+	ttys *[]dev.TTY
 }
 
 // processFunc is used to map a given aixFormatDescriptor to a corresponding
@@ -287,7 +289,10 @@ func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, 
 	// of the specified descriptors requires host data
 	for _, d := range aixDescriptors {
 		if d.onHost {
-			ctx.hostProcesses, _ = hostProcesses(pid)
+			ctx.hostProcesses, err = hostProcesses(pid)
+			if err != nil {
+				return nil, err
+			}
 			break
 		}
 	}
@@ -607,7 +612,7 @@ func processTTY(p *process.Process, ctx *psContext) (string, error) {
 		return "", nil
 	}
 
-	tty, err := dev.FindTTY(ttyNr)
+	tty, err := dev.FindTTY(ttyNr, ctx.ttys)
 	if err != nil {
 		return "", nil
 	}

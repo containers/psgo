@@ -22,7 +22,7 @@ import (
 
 func TestGetTTYs(t *testing.T) {
 	// no thorough test but it makes sure things are working
-	devs, err := getTTYs()
+	devs, err := TTYs()
 	assert.Nil(t, err)
 	assert.NotNil(t, devs)
 }
