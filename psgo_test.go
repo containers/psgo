@@ -30,7 +30,8 @@ func TestProcessARGS(t *testing.T) {
 		CmdLine: []string{""},
 	}
 
-	comm, err := processARGS(&p)
+	ctx := new(psContext)
+	comm, err := processARGS(&p, ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, "[foo-bar]", comm)
 
@@ -38,7 +39,7 @@ func TestProcessARGS(t *testing.T) {
 		CmdLine: []string{"/usr/bin/foo-bar -flag1 -flag2"},
 	}
 
-	comm, err = processARGS(&p)
+	comm, err = processARGS(&p, ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, "/usr/bin/foo-bar -flag1 -flag2", comm)
 }
@@ -51,7 +52,8 @@ func TestProcessCOMM(t *testing.T) {
 		CmdLine: []string{""},
 	}
 
-	comm, err := processCOMM(&p)
+	ctx := new(psContext)
+	comm, err := processCOMM(&p, ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, "[foo-bar]", comm)
 
@@ -59,7 +61,7 @@ func TestProcessCOMM(t *testing.T) {
 		CmdLine: []string{"/usr/bin/foo-bar"},
 	}
 
-	comm, err = processCOMM(&p)
+	comm, err = processCOMM(&p, ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, "foo-bar", comm)
 }
