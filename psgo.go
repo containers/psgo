@@ -39,7 +39,6 @@ import (
 	"github.com/containers/psgo/internal/dev"
 	"github.com/containers/psgo/internal/proc"
 	"github.com/containers/psgo/internal/process"
-	"github.com/containers/psgo/internal/types"
 	"github.com/pkg/errors"
 	"golang.org/x/sys/unix"
 )
@@ -330,12 +329,11 @@ func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, 
 			return
 		}
 
-		ctx := types.PsContext{
-			// join the user NS if the pid's user NS is different
-			// to the caller's user NS.
-			JoinUserNS: currentUserNs != pidUserNs,
-		}
-		processes, err := process.FromPIDs(&ctx, pids)
+		// join the user NS if the pid's user NS is different
+		// to the caller's user NS.
+		joinUserNS := currentUserNs != pidUserNs
+
+		processes, err := process.FromPIDs(pids, joinUserNS)
 		if err != nil {
 			dataErr = err
 			return
@@ -417,8 +415,7 @@ func ProcessInfoByPids(pids []string, descriptors []string) ([][]string, error) 
 		return nil, err
 	}
 
-	ctx := types.PsContext{JoinUserNS: false}
-	processes, err := process.FromPIDs(&ctx, pids)
+	processes, err := process.FromPIDs(pids, false)
 	if err != nil {
 		return nil, err
 	}
@@ -434,8 +431,7 @@ func setHostProcesses(pid string) error {
 		return err
 	}
 
-	ctx := types.PsContext{JoinUserNS: false}
-	processes, err := process.FromPIDs(&ctx, pids)
+	processes, err := process.FromPIDs(pids, false)
 	if err != nil {
 		return err
 	}
