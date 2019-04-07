@@ -327,7 +327,10 @@ func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, 
 			dataErr = err
 			return
 		}
-		unix.Setns(int(fd.Fd()), unix.CLONE_NEWNS)
+		if err := unix.Setns(int(fd.Fd()), unix.CLONE_NEWNS); err != nil {
+			dataErr = err
+			return
+		}
 
 		// extract all pids mentioned in pid's mount namespace
 		pids, err := proc.GetPIDs()
