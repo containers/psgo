@@ -15,7 +15,7 @@ before_install:
         - sudo apt-get install -qq bats
 
 before_script:
-        - go get github.com/golang/lint/golint
+        - go get -u golang.org/x/lint/golint
 
 script:
         - make validate
