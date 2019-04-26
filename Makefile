@@ -18,10 +18,10 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 .PHONY: vendor
-vendor: vendor.conf
-	@echo "*** Sorting vendor.conf ***"
-	sort vendor.conf -o vendor.conf
-	vndr
+vendor:
+	GO111MODULE=on go mod tidy
+	GO111MODULE=on go mod vendor
+	GO111MODULE=on go mod verify
 
 .PHONY: validate
 validate: .install.lint
