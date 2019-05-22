@@ -63,6 +63,10 @@ type JoinNamespaceOpts struct {
 	// GIDMap specifies a mapping for GIDs in the container.  If specified
 	// hgroup will perform the reverse mapping.
 	GIDMap []IDMap
+
+	// FillMappings specified whether UIDMap and GIDMap must be initialized
+	// with the current user namespace.
+	FillMappings bool
 }
 
 type psContext struct {
@@ -325,6 +329,40 @@ func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, 
 	return JoinNamespaceAndProcessInfoWithOptions(pid, descriptors, &JoinNamespaceOpts{})
 }
 
+func readMappings(path string) ([]IDMap, error) {
+	mappings, err := proc.ReadMappings(path)
+	if err != nil {
+		return nil, err
+	}
+	var res []IDMap
+	for _, i := range mappings {
+		m := IDMap{ContainerID: i.ContainerID, HostID: i.HostID, Size: i.Size}
+		res = append(res, m)
+	}
+	return res, nil
+}
+
+func contextFromOptions(options *JoinNamespaceOpts) (*psContext, error) {
+	ctx := new(psContext)
+	ctx.opts = options
+	if ctx.opts != nil && ctx.opts.FillMappings {
+		uidMappings, err := readMappings("/proc/self/uid_map")
+		if err != nil {
+			return nil, err
+		}
+
+		gidMappings, err := readMappings("/proc/self/gid_map")
+		if err != nil {
+			return nil, err
+		}
+		ctx.opts.UIDMap = uidMappings
+		ctx.opts.GIDMap = gidMappings
+
+		ctx.opts.FillMappings = false
+	}
+	return ctx, nil
+}
+
 // JoinNamespaceAndProcessInfoWithOptions has the same semantics as ProcessInfo but joins
 // the mount namespace of the specified pid before extracting data from `/proc`.
 func JoinNamespaceAndProcessInfoWithOptions(pid string, descriptors []string, options *JoinNamespaceOpts) ([][]string, error) {
@@ -339,8 +377,10 @@ func JoinNamespaceAndProcessInfoWithOptions(pid string, descriptors []string, op
 		return nil, err
 	}
 
-	ctx := new(psContext)
-	ctx.opts = options
+	ctx, err := contextFromOptions(options)
+	if err != nil {
+		return nil, err
+	}
 
 	// extract data from host processes only on-demand / when at least one
 	// of the specified descriptors requires host data
@@ -489,7 +529,10 @@ func ProcessInfoByPids(pids []string, descriptors []string) ([][]string, error) 
 		return nil, err
 	}
 
-	ctx := new(psContext)
+	ctx, err := contextFromOptions(nil)
+	if err != nil {
+		return nil, err
+	}
 	ctx.containersProcesses, err = process.FromPIDs(pids, false)
 	if err != nil {
 		return nil, err
