@@ -69,7 +69,7 @@ type aixFormatDescriptor struct {
 	// onHost controls if data of the corresponding host processes will be
 	// extracted as well.
 	onHost bool
-	// procFN points to the corresponding method to etract the desired data.
+	// procFN points to the corresponding method to extract the desired data.
 	procFn processFunc
 }
 
@@ -358,7 +358,7 @@ func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, 
 
 // JoinNamespaceAndProcessInfoByPids has similar semantics to
 // JoinNamespaceAndProcessInfo and avoids duplicate entries by joining a giving
-// PID namepsace only once.
+// PID namespace only once.
 func JoinNamespaceAndProcessInfoByPids(pids []string, descriptors []string) ([][]string, error) {
 	// Extracting data from processes that share the same PID namespace
 	// would yield duplicate results.  Avoid that by extracting data only
