@@ -43,6 +43,10 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// JoinNamespaceOpts specifies different options for joining the specified namespaces.
+type JoinNamespaceOpts struct {
+}
+
 type psContext struct {
 	// Processes in the container.
 	containersProcesses []*process.Process
@@ -272,6 +276,12 @@ func ListDescriptors() (list []string) {
 // JoinNamespaceAndProcessInfo has the same semantics as ProcessInfo but joins
 // the mount namespace of the specified pid before extracting data from `/proc`.
 func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, error) {
+	return JoinNamespaceAndProcessInfoWithOptions(pid, descriptors, &JoinNamespaceOpts{})
+}
+
+// JoinNamespaceAndProcessInfoWithOptions has the same semantics as ProcessInfo but joins
+// the mount namespace of the specified pid before extracting data from `/proc`.
+func JoinNamespaceAndProcessInfoWithOptions(pid string, descriptors []string, options *JoinNamespaceOpts) ([][]string, error) {
 	var (
 		data    [][]string
 		dataErr error
@@ -284,6 +294,7 @@ func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, 
 	}
 
 	ctx := new(psContext)
+	ctx.opts = options
 
 	// extract data from host processes only on-demand / when at least one
 	// of the specified descriptors requires host data
@@ -356,10 +367,10 @@ func JoinNamespaceAndProcessInfo(pid string, descriptors []string) ([][]string, 
 	return data, dataErr
 }
 
-// JoinNamespaceAndProcessInfoByPids has similar semantics to
+// JoinNamespaceAndProcessInfoByPidsWithOptions has similar semantics to
 // JoinNamespaceAndProcessInfo and avoids duplicate entries by joining a giving
 // PID namespace only once.
-func JoinNamespaceAndProcessInfoByPids(pids []string, descriptors []string) ([][]string, error) {
+func JoinNamespaceAndProcessInfoByPidsWithOptions(pids []string, descriptors []string, options *JoinNamespaceOpts) ([][]string, error) {
 	// Extracting data from processes that share the same PID namespace
 	// would yield duplicate results.  Avoid that by extracting data only
 	// from the first process in `pids` from a given PID namespace.
@@ -385,7 +396,7 @@ func JoinNamespaceAndProcessInfoByPids(pids []string, descriptors []string) ([][
 
 	data := [][]string{}
 	for i, pid := range pidList {
-		pidData, err := JoinNamespaceAndProcessInfo(pid, descriptors)
+		pidData, err := JoinNamespaceAndProcessInfoWithOptions(pid, descriptors, options)
 		if os.IsNotExist(errors.Cause(err)) {
 			// catch race conditions
 			continue
@@ -400,6 +411,13 @@ func JoinNamespaceAndProcessInfoByPids(pids []string, descriptors []string) ([][
 	}
 
 	return data, nil
+}
+
+// JoinNamespaceAndProcessInfoByPids has similar semantics to
+// JoinNamespaceAndProcessInfo and avoids duplicate entries by joining a giving
+// PID namespace only once.
+func JoinNamespaceAndProcessInfoByPids(pids []string, descriptors []string) ([][]string, error) {
+	return JoinNamespaceAndProcessInfoByPidsWithOptions(pids, descriptors, &JoinNamespaceOpts{})
 }
 
 // ProcessInfo returns the process information of all processes in the current
