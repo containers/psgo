@@ -28,6 +28,7 @@ package psgo
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"runtime"
 	"sort"
@@ -43,8 +44,25 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// IDMap specifies a mapping range from the host to the container IDs.
+type IDMap struct {
+	// ContainerID is the first ID in the container.
+	ContainerID int
+	// HostID is the first ID in the host.
+	HostID int
+	// Size specifies how long is the range.  e.g. 1 means a single user
+	// is mapped.
+	Size int
+}
+
 // JoinNamespaceOpts specifies different options for joining the specified namespaces.
 type JoinNamespaceOpts struct {
+	// UIDMap specifies a mapping for UIDs in the container.  If specified
+	// huser will perform the reverse mapping.
+	UIDMap []IDMap
+	// GIDMap specifies a mapping for GIDs in the container.  If specified
+	// hgroup will perform the reverse mapping.
+	GIDMap []IDMap
 }
 
 type psContext struct {
@@ -54,6 +72,8 @@ type psContext struct {
 	hostProcesses []*process.Process
 	// tty and pty devices.
 	ttys *[]dev.TTY
+	// Various options
+	opts *JoinNamespaceOpts
 }
 
 // processFunc is used to map a given aixFormatDescriptor to a corresponding
@@ -75,6 +95,32 @@ type aixFormatDescriptor struct {
 	onHost bool
 	// procFN points to the corresponding method to extract the desired data.
 	procFn processFunc
+}
+
+// findID converts the specified id to the host mapping
+func findID(idStr string, mapping []IDMap, lookupFunc func(uid string) (string, error), overflowFile string) (string, error) {
+	if len(mapping) == 0 {
+		return idStr, nil
+	}
+
+	id, err := strconv.ParseInt(idStr, 10, 0)
+	if err != nil {
+		return "", errors.Wrapf(err, "cannot parse %s", idStr)
+	}
+	for _, m := range mapping {
+		if int(id) >= m.ContainerID && int(id) < m.ContainerID+m.Size {
+			user := fmt.Sprintf("%d", m.HostID+(int(id)-m.ContainerID))
+
+			return lookupFunc(user)
+		}
+	}
+
+	// User not found, read the overflow
+	overflow, err := ioutil.ReadFile(overflowFile)
+	if err != nil {
+		return "", errors.Wrapf(err, "cannot read %s", overflowFile)
+	}
+	return string(overflow), nil
 }
 
 // translateDescriptors parses the descriptors and returns a correspodning slice of
@@ -743,6 +789,9 @@ func processHPID(p *process.Process, ctx *psContext) (string, error) {
 // of the (container) or "?" if no corresponding process could be found.
 func processHUSER(p *process.Process, ctx *psContext) (string, error) {
 	if hp := findHostProcess(p, ctx); hp != nil {
+		if ctx.opts != nil && len(ctx.opts.UIDMap) > 0 {
+			return findID(p.Status.Uids[1], ctx.opts.UIDMap, process.LookupUID, "/proc/sys/fs/overflowuid")
+		}
 		return hp.Huser, nil
 	}
 	return "?", nil
@@ -753,6 +802,9 @@ func processHUSER(p *process.Process, ctx *psContext) (string, error) {
 // found.
 func processHGROUP(p *process.Process, ctx *psContext) (string, error) {
 	if hp := findHostProcess(p, ctx); hp != nil {
+		if ctx.opts != nil && len(ctx.opts.GIDMap) > 0 {
+			return findID(p.Status.Gids[1], ctx.opts.GIDMap, process.LookupGID, "/proc/sys/fs/overflowgid")
+		}
 		return hp.Hgroup, nil
 	}
 	return "?", nil
