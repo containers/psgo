@@ -18,13 +18,19 @@ func main() {
 		data        [][]string
 		err         error
 
-		pids   = flag.String("pids", "", "comma separated list of process IDs to retrieve")
-		format = flag.String("format", "", "ps(1) AIX format comma-separated string")
-		list   = flag.Bool("list", false, "list all supported descriptors")
-		join   = flag.Bool("join", false, "join namespace of provided pids (containers)")
+		pids         = flag.String("pids", "", "comma separated list of process IDs to retrieve")
+		format       = flag.String("format", "", "ps(1) AIX format comma-separated string")
+		list         = flag.Bool("list", false, "list all supported descriptors")
+		join         = flag.Bool("join", false, "join namespace of provided pids (containers)")
+		fillMappings = flag.Bool("fill-mappings", false, "fill the UID and GID mappings with the current user namespace")
 	)
 
 	flag.Parse()
+
+	if *fillMappings && !*join {
+		fmt.Fprintln(os.Stderr, "-fill-mappings requires -join")
+		os.Exit(1)
+	}
 
 	if *list {
 		fmt.Println(strings.Join(psgo.ListDescriptors(), ", "))
@@ -40,8 +46,10 @@ func main() {
 	}
 
 	if len(pidsList) > 0 {
+		opts := psgo.JoinNamespaceOpts{FillMappings: *fillMappings}
+
 		if *join {
-			data, err = psgo.JoinNamespaceAndProcessInfoByPids(pidsList, descriptors)
+			data, err = psgo.JoinNamespaceAndProcessInfoByPidsWithOptions(pidsList, descriptors, &opts)
 		} else {
 			data, err = psgo.ProcessInfoByPids(pidsList, descriptors)
 		}

@@ -146,3 +146,19 @@ function is_podman_available() {
 	sudo podman rm -f $ID_1 $ID_2
 	sudo podman pod rm $POD_ID
 }
+
+@test "Test fill-mappings" {
+	run unshare -muinpfr --mount-proc true
+	if [[ "$status" -ne 0 ]]; then
+		skip "unshare doesn't support all the needed options"
+	fi
+
+	INTERVAL=10$RANDOM
+	unshare -muinpfr --mount-proc sleep $INTERVAL &
+
+	PID=$(pgrep -fa $INTERVAL | grep -v unshare | cut -f 1 -d ' ')
+	run nsenter --preserve-credentials -U -t $PID ./bin/psgo -pids $PID -join -fill-mappings -format huser
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} != "root" ]]
+	kill -9 $PID
+}
