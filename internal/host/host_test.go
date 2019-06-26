@@ -22,7 +22,8 @@ import (
 
 func TestClockTicks(t *testing.T) {
 	// no thorough test but it makes sure things are working
-	ticks := ClockTicks()
+	ticks, err := ClockTicks()
+	assert.Nil(t, err)
 	assert.True(t, ticks > 0)
 }
 
