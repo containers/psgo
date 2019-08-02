@@ -148,6 +148,10 @@ function is_podman_available() {
 }
 
 @test "Test fill-mappings" {
+	if [[ ! -z "$TRAVIS" ]]; then
+		skip "Travis doesn't like this test"
+	fi
+
 	run unshare -muinpfr --mount-proc true
 	if [[ "$status" -ne 0 ]]; then
 		skip "unshare doesn't support all the needed options"
