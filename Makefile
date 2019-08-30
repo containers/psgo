@@ -1,4 +1,5 @@
 export GO111MODULE=off
+export GOPROXY=https://proxy.golang.org
 
 SHELL= /bin/bash
 GO ?= go
