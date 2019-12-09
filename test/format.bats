@@ -237,6 +237,12 @@ function is_labeling_enabled() {
 	[[ ${lines[0]} =~ "STATE" ]]
 }
 
+@test "STIME header" {
+	run ./bin/psgo -format "stime"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} =~ "STIME" ]]
+}
+
 @test "ALL header" {
 	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capamb, capinh, capprm, capeff, capbnd, seccomp, hpid, huser, hgroup, state"
 	[ "$status" -eq 0 ]
