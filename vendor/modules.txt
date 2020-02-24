@@ -10,7 +10,7 @@ github.com/pkg/errors
 github.com/pmezard/go-difflib/difflib
 # github.com/sirupsen/logrus v0.0.0-20190403091019-9b3cdde74fbe
 github.com/sirupsen/logrus
-# github.com/stretchr/testify v1.4.0
+# github.com/stretchr/testify v1.5.1
 github.com/stretchr/testify/assert
 # golang.org/x/sys v0.0.0-20190425145619-16072639606e
 golang.org/x/sys/unix
