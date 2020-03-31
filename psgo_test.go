@@ -46,8 +46,8 @@ func TestProcessARGS(t *testing.T) {
 
 func TestProcessCOMM(t *testing.T) {
 	p := process.Process{
-		Status: proc.Status{
-			Name: "foo-bar",
+		Stat: proc.Stat{
+			Comm: "foo-bar",
 		},
 		CmdLine: []string{""},
 	}
@@ -55,9 +55,12 @@ func TestProcessCOMM(t *testing.T) {
 	ctx := new(psContext)
 	comm, err := processCOMM(&p, ctx)
 	assert.Nil(t, err)
-	assert.Equal(t, "[foo-bar]", comm)
+	assert.Equal(t, "foo-bar", comm)
 
 	p = process.Process{
+		Stat: proc.Stat{
+			Comm: "foo-bar",
+		},
 		CmdLine: []string{"/usr/bin/foo-bar"},
 	}
 
