@@ -15,28 +15,38 @@
 package proc
 
 import (
-	"strings"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 var statFile = "31404 (gedit) R 2109 2128 2128 0 -1 4194304 13153 328 0 0 590 55 0 0 20 0 6 0 1331588 419667968 19515 18446744073709551615 94120519110656 94120519115256 140737253236304 0 0 0 0 4096 0 0 0 0 17 2 0 0 62588346 0 0 94120521215368 94120521216168 94120544436224 140737253242331 140737253242369 140737253242369 140737253244905 0"
+var statFileSpace = "31405 (ge d it) R 2109 2128 2128 0 -1 4194304 13153 328 0 0 590 55 0 0 20 0 6 0 1331588 419667968 19515 18446744073709551615 94120519110656 94120519115256 140737253236304 0 0 0 0 4096 0 0 0 0 17 2 0 0 62588346 0 0 94120521215368 94120521216168 94120544436224 140737253242331 140737253242369 140737253242369 140737253244905 0"
+var statFileParen = "31406 (ged)it) R 2109 2128 2128 0 -1 4194304 13153 328 0 0 590 55 0 0 20 0 6 0 1331588 419667968 19515 18446744073709551615 94120519110656 94120519115256 140737253236304 0 0 0 0 4096 0 0 0 0 17 2 0 0 62588346 0 0 94120521215368 94120521216168 94120544436224 140737253242331 140737253242369 140737253242369 140737253244905 0"
 
-func testReadStat(_ string) ([]string, error) {
-	return strings.Fields(statFile), nil
+func testReadStat(file string) (string, error) {
+	switch file {
+	case "/proc/31404/stat":
+		return statFile, nil
+	case "/proc/31405/stat":
+		return statFileSpace, nil
+	case "/proc/31406/stat":
+		return statFileParen, nil
+	}
+	return "", errors.New("unimplemented test case")
 }
 
 func TestParseStat(t *testing.T) {
 	readStat = testReadStat
 
-	s, err := ParseStat("")
+	s, err := ParseStat("31404")
 
 	assert.Nil(t, err)
 	assert.NotNil(t, s)
 
 	assert.Equal(t, "31404", s.Pid)
-	assert.Equal(t, "(gedit)", s.Comm)
+	assert.Equal(t, "gedit", s.Comm)
 	assert.Equal(t, "R", s.State)
 	assert.Equal(t, "2109", s.Ppid)
 	assert.Equal(t, "2128", s.Pgrp)
@@ -58,4 +68,18 @@ func TestParseStat(t *testing.T) {
 	assert.Equal(t, "0", s.Itrealvalue)
 	assert.Equal(t, "1331588", s.Starttime)
 	assert.Equal(t, "419667968", s.Vsize)
+
+	s2, err := ParseStat("31405")
+
+	assert.Nil(t, err)
+	assert.NotNil(t, s2)
+
+	assert.Equal(t, "ge d it", s2.Comm)
+
+	s3, err := ParseStat("31406")
+
+	assert.Nil(t, err)
+	assert.NotNil(t, s3)
+
+	assert.Equal(t, "ged)it", s3.Comm)
 }
