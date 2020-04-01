@@ -231,6 +231,12 @@ function is_labeling_enabled() {
 	[[ ${lines[0]} =~ "LABEL" ]]
 }
 
+@test "RSS header" {
+	run ./bin/psgo -format "rss"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} =~ "RSS" ]]
+}
+
 @test "STATE header" {
 	run ./bin/psgo -format "state"
 	[ "$status" -eq 0 ]
@@ -244,7 +250,7 @@ function is_labeling_enabled() {
 }
 
 @test "ALL header" {
-	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capamb, capinh, capprm, capeff, capbnd, seccomp, hpid, huser, hgroup, state"
+	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capamb, capinh, capprm, capeff, capbnd, seccomp, hpid, huser, hgroup, rss, state"
 	[ "$status" -eq 0 ]
 
 	[[ ${lines[0]} =~ "%CPU" ]]
@@ -270,5 +276,6 @@ function is_labeling_enabled() {
 	[[ ${lines[0]} =~ "HPID" ]]
 	[[ ${lines[0]} =~ "HUSER" ]]
 	[[ ${lines[0]} =~ "HGROUP" ]]
+	[[ ${lines[0]} =~ "RSS" ]]
 	[[ ${lines[0]} =~ "STATE" ]]
 }
