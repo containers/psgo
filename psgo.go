@@ -833,7 +833,7 @@ func processHPID(p *process.Process, ctx *psContext) (string, error) {
 func processHUSER(p *process.Process, ctx *psContext) (string, error) {
 	if hp := findHostProcess(p, ctx); hp != nil {
 		if ctx.opts != nil && len(ctx.opts.UIDMap) > 0 {
-			return findID(p.Status.Uids[1], ctx.opts.UIDMap, process.LookupUID, "/proc/sys/fs/overflowuid")
+			return findID(hp.Status.Uids[1], ctx.opts.UIDMap, process.LookupUID, "/proc/sys/fs/overflowuid")
 		}
 		return hp.Huser, nil
 	}
@@ -846,7 +846,7 @@ func processHUSER(p *process.Process, ctx *psContext) (string, error) {
 func processHGROUP(p *process.Process, ctx *psContext) (string, error) {
 	if hp := findHostProcess(p, ctx); hp != nil {
 		if ctx.opts != nil && len(ctx.opts.GIDMap) > 0 {
-			return findID(p.Status.Gids[1], ctx.opts.GIDMap, process.LookupGID, "/proc/sys/fs/overflowgid")
+			return findID(hp.Status.Gids[1], ctx.opts.GIDMap, process.LookupGID, "/proc/sys/fs/overflowgid")
 		}
 		return hp.Hgroup, nil
 	}
