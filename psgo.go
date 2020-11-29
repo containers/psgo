@@ -482,7 +482,7 @@ func JoinNamespaceAndProcessInfoByPidsWithOptions(pids []string, descriptors []s
 				// catch race conditions
 				continue
 			}
-			return nil, errors.Wrapf(err, "error extracing PID namespace")
+			return nil, errors.Wrapf(err, "error extracting PID namespace")
 		}
 		if _, exists := nsMap[ns]; !exists {
 			nsMap[ns] = true
