@@ -1,4 +1,3 @@
-export GO111MODULE=off
 export GOPROXY=https://proxy.golang.org
 
 SHELL= /bin/bash
@@ -15,8 +14,6 @@ GO_BUILD=$(GO) build
 ifeq ($(shell go help mod >/dev/null 2>&1 && echo true), true)
 	GO_BUILD=GO111MODULE=on $(GO) build -mod=vendor
 endif
-
-GOBIN ?= $(GO)/bin
 
 all: validate build
 
@@ -35,8 +32,8 @@ vendor:
 	GO111MODULE=on go mod verify
 
 .PHONY: validate
-validate: .install.lint
-	$(GOBIN)/golangci-lint run
+validate:
+	golangci-lint run
 
 .PHONY: test
 test: test-unit test-integration
@@ -53,10 +50,6 @@ test-unit:
 .PHONY: install
 install:
 	sudo install -D -m755 $(BUILD_DIR)/$(NAME) $(BIN_DIR)
-
-.PHONY: .install.lint
-.install.lint:
-	VERSION=1.24.0 GOBIN=$(GOBIN) sh ./hack/install_golangci.sh
 
 .PHONY: uninstall
 uninstall:
