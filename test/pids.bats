@@ -34,7 +34,7 @@
 	! [ "$status" -eq  0]
 }
 
-@test "Proccess information with --pids vs all processes" {
+@test "Process information with --pids vs all processes" {
 	nCtrs=5
 	pidsList=()
 	ctridList=()

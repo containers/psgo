@@ -620,14 +620,14 @@ func findHostProcess(p *process.Process, ctx *psContext) *process.Process {
 }
 
 // processGROUP returns the effective group ID of the process.  This will be
-// the textual group ID, if it can be optained, or a decimal representation
+// the textual group ID, if it can be obtained, or a decimal representation
 // otherwise.
 func processGROUP(p *process.Process, ctx *psContext) (string, error) {
 	return process.LookupGID(p.Status.Gids[1])
 }
 
 // processRGROUP returns the real group ID of the process.  This will be
-// the textual group ID, if it can be optained, or a decimal representation
+// the textual group ID, if it can be obtained, or a decimal representation
 // otherwise.
 func processRGROUP(p *process.Process, ctx *psContext) (string, error) {
 	return process.LookupGID(p.Status.Gids[0])
@@ -639,14 +639,14 @@ func processPPID(p *process.Process, ctx *psContext) (string, error) {
 }
 
 // processUSER returns the effective user name of the process.  This will be
-// the textual user ID, if it can be optained, or a decimal representation
+// the textual user ID, if it can be obtained, or a decimal representation
 // otherwise.
 func processUSER(p *process.Process, ctx *psContext) (string, error) {
 	return process.LookupUID(p.Status.Uids[1])
 }
 
 // processRUSER returns the effective user name of the process.  This will be
-// the textual user ID, if it can be optained, or a decimal representation
+// the textual user ID, if it can be obtained, or a decimal representation
 // otherwise.
 func processRUSER(p *process.Process, ctx *psContext) (string, error) {
 	return process.LookupUID(p.Status.Uids[0])
