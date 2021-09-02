@@ -7,7 +7,6 @@ BIN_DIR := /usr/local/bin
 NAME := psgo
 PROJECT := github.com/containers/psgo
 BATS_TESTS := *.bats
-GO_SRC=$(shell find . -name \*.go)
 
 GO_BUILD=$(GO) build
 # Go module support: set `-mod=vendor` to use the vendored sources
@@ -18,7 +17,7 @@ endif
 all: validate build
 
 .PHONY: build
-build: $(GO_SRC)
+build:
 	 $(GO_BUILD) -buildmode=pie -o $(BUILD_DIR)/$(NAME) $(PROJECT)/sample
 
 .PHONY: clean
