@@ -3,3 +3,4 @@
 linters:
   enable:
     - errorlint
+    - gofumpt
