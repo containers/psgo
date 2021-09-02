@@ -5,20 +5,15 @@ GO ?= go
 BUILD_DIR := ./bin
 BIN_DIR := /usr/local/bin
 NAME := psgo
-PROJECT := github.com/containers/psgo
 BATS_TESTS := *.bats
 
 GO_BUILD=$(GO) build
-# Go module support: set `-mod=vendor` to use the vendored sources
-ifeq ($(shell go help mod >/dev/null 2>&1 && echo true), true)
-	GO_BUILD=GO111MODULE=on $(GO) build -mod=vendor
-endif
 
 all: validate build
 
 .PHONY: build
 build:
-	 $(GO_BUILD) -buildmode=pie -o $(BUILD_DIR)/$(NAME) $(PROJECT)/sample
+	 $(GO_BUILD) -buildmode=pie -o $(BUILD_DIR)/$(NAME) ./sample
 
 .PHONY: clean
 clean:
@@ -26,9 +21,9 @@ clean:
 
 .PHONY: vendor
 vendor:
-	GO111MODULE=on go mod tidy
-	GO111MODULE=on go mod vendor
-	GO111MODULE=on go mod verify
+	go mod tidy
+	go mod vendor
+	go mod verify
 
 .PHONY: validate
 validate:
@@ -43,8 +38,7 @@ test-integration:
 
 .PHONY: test-unit
 test-unit:
-	go test -v $(PROJECT)
-	go test -v $(PROJECT)/internal/...
+	go test -v ./...
 
 .PHONY: install
 install:

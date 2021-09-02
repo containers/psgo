@@ -1,6 +1,6 @@
 module github.com/containers/psgo
 
-go 1.13
+go 1.14
 
 require (
 	github.com/opencontainers/runc v1.0.2
