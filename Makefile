@@ -7,13 +7,19 @@ BIN_DIR := /usr/local/bin
 NAME := psgo
 BATS_TESTS := *.bats
 
-GO_BUILD=$(GO) build
+# Not all platforms support -buildmode=pie
+ifeq ($(shell $(GO) env GOOS),linux)
+	ifeq (,$(filter $(shell $(GO) env GOARCH),mips mipsle mips64 mips64le ppc64))
+		GO_BUILDMODE := "-buildmode=pie"
+	endif
+endif
+GO_BUILD := $(GO) build $(GO_BUILDMODE)
 
 all: validate build
 
 .PHONY: build
 build:
-	 $(GO_BUILD) -buildmode=pie -o $(BUILD_DIR)/$(NAME) ./sample
+	 $(GO_BUILD) -o $(BUILD_DIR)/$(NAME) ./sample
 
 .PHONY: clean
 clean:
