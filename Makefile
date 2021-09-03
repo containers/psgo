@@ -7,10 +7,12 @@ BIN_DIR := /usr/local/bin
 NAME := psgo
 BATS_TESTS := *.bats
 
-# Not all platforms support -buildmode=pie
+# Not all platforms support -buildmode=pie, plus it's incompatible with -race.
 ifeq ($(shell $(GO) env GOOS),linux)
-	ifeq (,$(filter $(shell $(GO) env GOARCH),mips mipsle mips64 mips64le ppc64))
-		GO_BUILDMODE := "-buildmode=pie"
+	ifeq (,$(filter $(shell $(GO) env GOARCH),mips mipsle mips64 mips64le ppc64 riscv64))
+		ifeq (,$(findstring -race,$(EXTRA_BUILD_FLAGS)))
+			GO_BUILDMODE := "-buildmode=pie"
+		endif
 	endif
 endif
 GO_BUILD := $(GO) build $(GO_BUILDMODE)
@@ -19,7 +21,7 @@ all: validate build
 
 .PHONY: build
 build:
-	 $(GO_BUILD) -o $(BUILD_DIR)/$(NAME) ./sample
+	 $(GO_BUILD) $(EXTRA_BUILD_FLAGS) -o $(BUILD_DIR)/$(NAME) ./sample
 
 .PHONY: clean
 clean:
@@ -44,7 +46,7 @@ test-integration:
 
 .PHONY: test-unit
 test-unit:
-	go test -v ./...
+	$(GO) test -v $(EXTRA_TEST_FLAGS) ./...
 
 .PHONY: install
 install:
