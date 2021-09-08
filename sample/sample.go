@@ -3,12 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"text/tabwriter"
 
 	"github.com/containers/psgo"
-	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -25,11 +25,13 @@ func main() {
 		fillMappings = flag.Bool("fill-mappings", false, "fill the UID and GID mappings with the current user namespace")
 	)
 
+	log.SetPrefix("psgo: ")
+	log.SetFlags(0)
+
 	flag.Parse()
 
 	if *fillMappings && !*join {
-		fmt.Fprintln(os.Stderr, "-fill-mappings requires -join")
-		os.Exit(1)
+		log.Fatal("-fill-mappings requires -join")
 	}
 
 	if *list {
@@ -54,12 +56,12 @@ func main() {
 			data, err = psgo.ProcessInfoByPids(pidsList, descriptors)
 		}
 		if err != nil {
-			logrus.Panic(err)
+			log.Panic(err)
 		}
 	} else {
 		data, err = psgo.ProcessInfo(descriptors)
 		if err != nil {
-			logrus.Panic(err)
+			log.Panic(err)
 		}
 	}
 
