@@ -33,6 +33,12 @@
 	[[ ${lines[0]} =~ "GROUP" ]]
 }
 
+@test "GROUPS header" {
+	run ./bin/psgo -format "groups"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} =~ "GROUPS" ]]
+}
+
 @test "PPID header" {
 	run ./bin/psgo -format "%P"
 	[ "$status" -eq 0 ]
@@ -213,6 +219,15 @@
 	[[ ${lines[1]} =~ "?" ]]
 }
 
+@test "HGROUPS header" {
+	run ./bin/psgo -format "hgroups"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} =~ "HGROUPS" ]]
+	# host groups are only extracted with `-pid`
+	[[ ${lines[1]} =~ "?" ]]
+}
+
+
 function is_labeling_enabled() {
 	if [ -e /usr/sbin/selinuxenabled ] && /usr/sbin/selinuxenabled; then
 			echo 1
@@ -250,11 +265,12 @@ function is_labeling_enabled() {
 }
 
 @test "ALL header" {
-	run ./bin/psgo -format "pcpu, group, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capamb, capinh, capprm, capeff, capbnd, seccomp, hpid, huser, hgroup, rss, state"
+	run ./bin/psgo -format "pcpu, group, groups, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capamb, capinh, capprm, capeff, capbnd, seccomp, hpid, huser, hgroup, hgroups, rss, state"
 	[ "$status" -eq 0 ]
 
 	[[ ${lines[0]} =~ "%CPU" ]]
 	[[ ${lines[0]} =~ "GROUP" ]]
+	[[ ${lines[0]} =~ "GROUPS" ]]
 	[[ ${lines[0]} =~ "PPID" ]]
 	[[ ${lines[0]} =~ "USER" ]]
 	[[ ${lines[0]} =~ "COMMAND" ]]
@@ -276,6 +292,7 @@ function is_labeling_enabled() {
 	[[ ${lines[0]} =~ "HPID" ]]
 	[[ ${lines[0]} =~ "HUSER" ]]
 	[[ ${lines[0]} =~ "HGROUP" ]]
+	[[ ${lines[0]} =~ "HGROUPS" ]]
 	[[ ${lines[0]} =~ "RSS" ]]
 	[[ ${lines[0]} =~ "STATE" ]]
 }
