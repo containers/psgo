@@ -125,8 +125,10 @@ func getPIDsFromCgroupV2(pid string) ([]string, error) {
 		if len(fields) != 3 {
 			continue
 		}
-		cgroupSlice = fields[2]
-		break
+		if fields[1] == "" {
+			cgroupSlice = fields[2]
+			break
+		}
 	}
 
 	if cgroupSlice == "" {
