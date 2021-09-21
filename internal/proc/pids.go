@@ -83,7 +83,7 @@ func getPIDsFromCgroupV1(pid string) ([]string, error) {
 			continue
 		}
 		if fields[1] == "pids" {
-			cgroupPath = fmt.Sprintf("/sys/fs/cgroup/pids/%s/cgroup.procs", fields[2])
+			cgroupPath = filepath.Join(cgroups.CgroupRoot, "pids", fields[2], "cgroup.procs")
 		}
 	}
 
