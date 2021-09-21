@@ -84,6 +84,7 @@ func getPIDsFromCgroupV1(pid string) ([]string, error) {
 		}
 		if fields[1] == "pids" {
 			cgroupPath = filepath.Join(cgroups.CgroupRoot, "pids", fields[2], "cgroup.procs")
+			break
 		}
 	}
 
