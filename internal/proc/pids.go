@@ -69,7 +69,8 @@ func GetPIDsFromCgroup(pid string) ([]string, error) {
 // cgroup.
 func getPIDsFromCgroupV1(pid string) ([]string, error) {
 	// First, find the corresponding path to the PID cgroup.
-	f, err := os.Open(fmt.Sprintf("/proc/%s/cgroup", pid))
+	pidPath := fmt.Sprintf("/proc/%s/cgroup", pid)
+	f, err := os.Open(pidPath)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +96,18 @@ func getPIDsFromCgroupV1(pid string) ([]string, error) {
 	// Second, extract the PIDs inside the cgroup.
 	f, err = os.Open(cgroupPath)
 	if err != nil {
-		return nil, err
+		if os.IsNotExist(err) {
+			// OCI runtimes might mount the container cgroup at the root, breaking what it showed
+			// in /proc/$PID/cgroup and the path.
+			// Check if the PID still exists to make sure the process is still alive.
+			if _, errStat := os.Stat(pidPath); errStat == nil {
+				cgroupPath = filepath.Join(cgroups.CgroupRoot, "pids", "cgroup.procs")
+				f, err = os.Open(cgroupPath)
+			}
+		}
+		if err != nil {
+			return nil, err
+		}
 	}
 	defer f.Close()
 
