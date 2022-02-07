@@ -1,4 +1,4 @@
-# github.com/containers/storage v1.38.0
+# github.com/containers/storage v1.38.2
 ## explicit
 github.com/containers/storage/pkg/idtools
 github.com/containers/storage/pkg/mount
