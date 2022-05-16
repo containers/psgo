@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/containers/storage v1.38.2
-	github.com/opencontainers/runc v1.1.0
+	github.com/opencontainers/runc v1.1.2
 	github.com/stretchr/testify v1.7.1
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9
 )
