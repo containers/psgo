@@ -9,7 +9,7 @@ github.com/davecgh/go-spew/spew
 github.com/docker/go-units
 # github.com/moby/sys/mountinfo v0.5.0
 github.com/moby/sys/mountinfo
-# github.com/opencontainers/runc v1.1.0
+# github.com/opencontainers/runc v1.1.3
 ## explicit
 github.com/opencontainers/runc/libcontainer/user
 # github.com/pkg/errors v0.9.1
