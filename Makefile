@@ -25,6 +25,9 @@ build:
 clean:
 	rm -rf $(BUILD_DIR)
 
+vendor-in-container:
+	podman run --privileged --rm --env HOME=/root -v `pwd`:/src -w /src golang make vendor
+
 .PHONY: vendor
 vendor:
 	go mod tidy
