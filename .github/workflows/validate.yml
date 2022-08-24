@@ -13,19 +13,21 @@ jobs:
   lint:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: golangci/golangci-lint-action@v2
+      - uses: actions/checkout@v3
+      - uses: golangci/golangci-lint-action@v3
         with:
-          # must be specified without patch version
-          version: v1.40
+          version: v1.48.0
+
+          # Only show new issues for a pull request.
+          only-new-issues: true
 
   codespell:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: install deps
       # Version of codespell bundled with Ubuntu is way old, so use pip.
       run: pip install codespell
     - name: run codespell
-      run: codespell
+      run: codespell -S go.sum
 
