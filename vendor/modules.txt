@@ -1,11 +1,11 @@
-# github.com/containers/storage v1.42.0
+# github.com/containers/storage v1.43.0
 ## explicit
 github.com/containers/storage/pkg/idtools
 github.com/containers/storage/pkg/mount
 github.com/containers/storage/pkg/system
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
-# github.com/docker/go-units v0.4.0
+# github.com/docker/go-units v0.5.0
 github.com/docker/go-units
 # github.com/moby/sys/mountinfo v0.6.2
 github.com/moby/sys/mountinfo
