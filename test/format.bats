@@ -59,6 +59,12 @@
 	[[ ${lines[0]} =~ "USER" ]]
 }
 
+@test "UID header" {
+	run ./bin/psgo -format "uid"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} =~ "UID" ]]
+}
+
 @test "COMMAND (args) header" {
 	run ./bin/psgo -format "%a"
 	[ "$status" -eq 0 ]
@@ -211,6 +217,14 @@
 	[[ ${lines[1]} =~ "?" ]]
 }
 
+@test "HUID header" {
+	run ./bin/psgo -format "huid"
+	[ "$status" -eq 0 ]
+	[[ ${lines[0]} =~ "HUID" ]]
+	# host UIDs are only extracted with `-pid`
+	[[ ${lines[1]} =~ "?" ]]
+}
+
 @test "HGROUP header" {
 	run ./bin/psgo -format "hgroup"
 	[ "$status" -eq 0 ]
@@ -265,7 +279,7 @@ function is_labeling_enabled() {
 }
 
 @test "ALL header" {
-	run ./bin/psgo -format "pcpu, group, groups, ppid, user, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capamb, capinh, capprm, capeff, capbnd, seccomp, hpid, huser, hgroup, hgroups, rss, state"
+	run ./bin/psgo -format "pcpu, group, groups, ppid, user, uid, args, comm, rgroup, nice, pid, pgid, etime, ruser, time, tty, vsz, capamb, capinh, capprm, capeff, capbnd, seccomp, hpid, huser, huid, hgroup, hgroups, rss, state"
 	[ "$status" -eq 0 ]
 
 	[[ ${lines[0]} =~ "%CPU" ]]
@@ -273,6 +287,7 @@ function is_labeling_enabled() {
 	[[ ${lines[0]} =~ "GROUPS" ]]
 	[[ ${lines[0]} =~ "PPID" ]]
 	[[ ${lines[0]} =~ "USER" ]]
+	[[ ${lines[0]} =~ "UID" ]]
 	[[ ${lines[0]} =~ "COMMAND" ]]
 	[[ ${lines[0]} =~ "COMMAND" ]]
 	[[ ${lines[0]} =~ "RGROUP" ]]
@@ -291,6 +306,7 @@ function is_labeling_enabled() {
 	[[ ${lines[0]} =~ "SECCOMP" ]]
 	[[ ${lines[0]} =~ "HPID" ]]
 	[[ ${lines[0]} =~ "HUSER" ]]
+	[[ ${lines[0]} =~ "HUID" ]]
 	[[ ${lines[0]} =~ "HGROUP" ]]
 	[[ ${lines[0]} =~ "HGROUPS" ]]
 	[[ ${lines[0]} =~ "RSS" ]]
