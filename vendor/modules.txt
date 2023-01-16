@@ -1,7 +1,8 @@
-# github.com/containers/storage v1.44.0
+# github.com/containers/storage v1.45.0
 ## explicit
 github.com/containers/storage/pkg/idtools
 github.com/containers/storage/pkg/mount
+github.com/containers/storage/pkg/regexp
 github.com/containers/storage/pkg/system
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
