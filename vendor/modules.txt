@@ -10,7 +10,7 @@ github.com/davecgh/go-spew/spew
 github.com/docker/go-units
 # github.com/moby/sys/mountinfo v0.6.2
 github.com/moby/sys/mountinfo
-# github.com/opencontainers/runc v1.1.5
+# github.com/opencontainers/runc v1.1.6
 ## explicit
 github.com/opencontainers/runc/libcontainer/user
 # github.com/pmezard/go-difflib v1.0.0
@@ -20,7 +20,7 @@ github.com/sirupsen/logrus
 # github.com/stretchr/testify v1.8.2
 ## explicit
 github.com/stretchr/testify/assert
-# golang.org/x/sys v0.0.0-20220823224334-20c2bfdbfe24
+# golang.org/x/sys v0.6.0
 ## explicit
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
