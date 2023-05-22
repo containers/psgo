@@ -17,7 +17,7 @@ github.com/opencontainers/runc/libcontainer/user
 github.com/pmezard/go-difflib/difflib
 # github.com/sirupsen/logrus v1.9.0
 github.com/sirupsen/logrus
-# github.com/stretchr/testify v1.8.2
+# github.com/stretchr/testify v1.8.3
 ## explicit
 github.com/stretchr/testify/assert
 # golang.org/x/sys v0.0.0-20220823224334-20c2bfdbfe24
