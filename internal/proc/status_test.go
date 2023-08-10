@@ -70,6 +70,7 @@ CapBnd: ffffffffffffffff
 CapAmb:   0000000000000000
 NoNewPrivs:     0
 Seccomp:        0
+Seccomp_filters:        0
 Cpus_allowed:   00000001
 Cpus_allowed_list:      0
 Mems_allowed:   1
@@ -128,6 +129,7 @@ func TestParseStatus(t *testing.T) {
 	assert.Equal(t, "0000000000000000", s.CapAmb)
 	assert.Equal(t, "0", s.NoNewPrivs)
 	assert.Equal(t, "0", s.Seccomp)
+	assert.Equal(t, "0", s.SeccompFilters)
 	assert.Equal(t, "00000001", s.CpusAllowed)
 	assert.Equal(t, "0", s.CpusAllowedList)
 	assert.Equal(t, "1", s.MemsAllowed)
