@@ -1,4 +1,4 @@
-# github.com/containers/storage v1.48.0
+# github.com/containers/storage v1.49.0
 ## explicit; go 1.19
 github.com/containers/storage/pkg/idtools
 github.com/containers/storage/pkg/mount
@@ -25,7 +25,7 @@ github.com/sirupsen/logrus
 # github.com/stretchr/testify v1.8.4
 ## explicit; go 1.20
 github.com/stretchr/testify/assert
-# golang.org/x/sys v0.9.0
+# golang.org/x/sys v0.11.0
 ## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
