@@ -3,8 +3,8 @@ module github.com/containers/psgo
 go 1.18
 
 require (
-	github.com/containers/storage v1.51.0
-	github.com/opencontainers/runc v1.1.10
+	github.com/containers/storage v1.52.0
+	github.com/opencontainers/runc v1.1.11
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/sys v0.16.0
 )
