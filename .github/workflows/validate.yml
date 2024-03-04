@@ -11,23 +11,24 @@ on:
 jobs:
 
   lint:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
-      - uses: golangci/golangci-lint-action@v3
-        with:
-          version: v1.48.0
-
-          # Only show new issues for a pull request.
-          only-new-issues: true
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+    - uses: actions/setup-go@v5
+    - name: lint
+      uses: golangci/golangci-lint-action@v4
+      with:
+        version: "${{ env.LINT_VERSION }}"
+        args: --verbose
 
   codespell:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: install deps
       # Version of codespell bundled with Ubuntu is way old, so use pip.
       run: pip install codespell
     - name: run codespell
-      run: codespell -S go.sum
-
+      run: codespell --dictionary=-
