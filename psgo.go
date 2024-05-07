@@ -477,7 +477,7 @@ func JoinNamespaceAndProcessInfoByPidsWithOptions(pids []string, descriptors []s
 	for _, pid := range pids {
 		ns, err := proc.ParsePIDNamespace(pid)
 		if err != nil {
-			if errors.Is(err, os.ErrNotExist) {
+			if errors.Is(err, os.ErrNotExist) || errors.Is(err, unix.ESRCH) {
 				// catch race conditions
 				continue
 			}
@@ -492,7 +492,7 @@ func JoinNamespaceAndProcessInfoByPidsWithOptions(pids []string, descriptors []s
 	data := [][]string{}
 	for i, pid := range pidList {
 		pidData, err := JoinNamespaceAndProcessInfoWithOptions(pid, descriptors, options)
-		if errors.Is(err, os.ErrNotExist) {
+		if errors.Is(err, os.ErrNotExist) || errors.Is(err, unix.ESRCH) {
 			// catch race conditions
 			continue
 		}

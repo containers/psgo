@@ -24,6 +24,7 @@ import (
 	"github.com/containers/psgo/internal/host"
 	"github.com/containers/psgo/internal/proc"
 	"github.com/opencontainers/runc/libcontainer/user"
+	"golang.org/x/sys/unix"
 )
 
 // Process includes process-related from the /proc FS.
@@ -108,7 +109,7 @@ func FromPIDs(pids []string, joinUserNS bool) ([]*Process, error) {
 	for _, pid := range pids {
 		p, err := New(pid, joinUserNS)
 		if err != nil {
-			if errors.Is(err, os.ErrNotExist) {
+			if errors.Is(err, os.ErrNotExist) || errors.Is(err, unix.ESRCH) {
 				// proc parsing is racy
 				// Let's ignore "does not exist" errors
 				continue
