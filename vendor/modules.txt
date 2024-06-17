@@ -17,8 +17,8 @@ github.com/moby/sys/mountinfo
 # github.com/moby/sys/user v0.1.0
 ## explicit; go 1.17
 github.com/moby/sys/user
-# github.com/opencontainers/runc v1.1.12
-## explicit; go 1.17
+# github.com/opencontainers/runc v1.1.13
+## explicit; go 1.18
 github.com/opencontainers/runc/libcontainer/user
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
