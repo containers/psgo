@@ -17,7 +17,6 @@ package proc
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -27,7 +26,7 @@ import (
 // ParseAttrCurrent returns the contents of /proc/$pid/attr/current of "?" if
 // labeling is not supported on the host.
 func ParseAttrCurrent(pid string) (string, error) {
-	data, err := ioutil.ReadFile(fmt.Sprintf("/proc/%s/attr/current", pid))
+	data, err := os.ReadFile(fmt.Sprintf("/proc/%s/attr/current", pid))
 	if err != nil {
 		_, err = os.Stat(fmt.Sprintf("/proc/%s", pid))
 		if errors.Is(err, os.ErrNotExist) || errors.Is(err, unix.ESRCH) {
