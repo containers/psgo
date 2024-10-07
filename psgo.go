@@ -29,7 +29,6 @@ package psgo
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"runtime"
 	"sort"
@@ -110,7 +109,7 @@ func findID(idStr string, mapping []idtools.IDMap, lookupFunc func(uid string) (
 	}
 
 	// User not found, read the overflow
-	overflow, err := ioutil.ReadFile(overflowFile)
+	overflow, err := os.ReadFile(overflowFile)
 	if err != nil {
 		return "", err
 	}
