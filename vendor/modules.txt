@@ -1,5 +1,5 @@
-# github.com/containers/storage v1.55.0
-## explicit; go 1.21
+# github.com/containers/storage v1.57.2
+## explicit; go 1.22.0
 github.com/containers/storage/pkg/fileutils
 github.com/containers/storage/pkg/idtools
 github.com/containers/storage/pkg/mount
@@ -14,10 +14,10 @@ github.com/docker/go-units
 # github.com/moby/sys/mountinfo v0.7.2
 ## explicit; go 1.17
 github.com/moby/sys/mountinfo
-# github.com/moby/sys/user v0.2.0
-## explicit; go 1.21
+# github.com/moby/sys/user v0.3.0
+## explicit; go 1.17
 github.com/moby/sys/user
-# github.com/opencontainers/runc v1.1.13
+# github.com/opencontainers/runc v1.1.14
 ## explicit; go 1.18
 github.com/opencontainers/runc/libcontainer/user
 # github.com/pmezard/go-difflib v1.0.0
