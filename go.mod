@@ -1,12 +1,12 @@
 module github.com/containers/psgo
 
-go 1.18
+go 1.23.0
 
 require (
 	github.com/containers/storage v1.55.0
 	github.com/opencontainers/runc v1.1.13
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/sys v0.30.0
+	golang.org/x/sys v0.33.0
 )
 
 require (
