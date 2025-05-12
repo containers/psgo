@@ -23,7 +23,7 @@ import (
 
 	"github.com/containers/psgo/internal/host"
 	"github.com/containers/psgo/internal/proc"
-	"github.com/opencontainers/runc/libcontainer/user"
+	"github.com/moby/sys/user"
 	"golang.org/x/sys/unix"
 )
 
