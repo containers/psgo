@@ -6,7 +6,7 @@ require (
 	github.com/containers/storage v1.58.0
 	github.com/moby/sys/user v0.4.0
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/sys v0.33.0
+	golang.org/x/sys v0.35.0
 )
 
 require (
