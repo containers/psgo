@@ -14,8 +14,8 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/containers/storage/pkg/system"
 	"github.com/sirupsen/logrus"
+	"go.podman.io/storage/pkg/system"
 )
 
 // IDMap contains a single entry for user namespace range remapping. An array
