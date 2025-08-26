@@ -4,7 +4,7 @@ go 1.23.3
 
 require (
 	github.com/moby/sys/user v0.4.0
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	go.podman.io/storage v0.0.0-20250826054041-6e4bed3c9118
 	golang.org/x/sys v0.35.0
 )
