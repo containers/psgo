@@ -1,9 +1,11 @@
-# github.com/davecgh/go-spew v1.1.1
+# github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 ## explicit
 github.com/davecgh/go-spew/spew
 # github.com/docker/go-units v0.5.0
 ## explicit
 github.com/docker/go-units
+# github.com/kr/text v0.2.0
+## explicit
 # github.com/moby/sys/mountinfo v0.7.2
 ## explicit; go 1.17
 github.com/moby/sys/mountinfo
@@ -16,11 +18,11 @@ github.com/pmezard/go-difflib/difflib
 # github.com/sirupsen/logrus v1.9.3
 ## explicit; go 1.13
 github.com/sirupsen/logrus
-# github.com/stretchr/testify v1.11.0
+# github.com/stretchr/testify v1.11.1
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
-# go.podman.io/storage v0.0.0-20250826054041-6e4bed3c9118
+# go.podman.io/storage v1.60.0
 ## explicit; go 1.23.3
 go.podman.io/storage/pkg/fileutils
 go.podman.io/storage/pkg/idtools
