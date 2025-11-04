@@ -20,10 +20,10 @@ jobs:
     steps:
 
     - name: checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
 
     - name: install go ${{ matrix.go-version }}
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v6
       with:
         stable: '!contains(${{ matrix.go-version }}, "beta") && !contains(${{ matrix.go-version }}, "rc")'
         go-version: ${{ matrix.go-version }}
