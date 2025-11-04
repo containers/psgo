@@ -29,9 +29,7 @@ jobs:
         go-version: ${{ matrix.go-version }}
 
     - name: install bats
-      uses: mig4/setup-bats@v1
-      with:
-        bats-version: 1.4.1
+      run: sudo apt-get update && sudo apt-get install bats
 
     - name: build
       run: make build EXTRA_BUILD_FLAGS="${{ matrix.race }}"
