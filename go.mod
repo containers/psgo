@@ -1,6 +1,6 @@
 module github.com/containers/psgo
 
-go 1.23.3
+go 1.24.0
 
 require (
 	github.com/moby/sys/user v0.4.0
