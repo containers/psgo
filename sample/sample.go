@@ -67,7 +67,7 @@ func main() {
 
 	tw := tabwriter.NewWriter(os.Stdout, 5, 1, 3, ' ', 0)
 	for _, d := range data {
-		fmt.Fprintln(tw, strings.Join(d, "\t"))
+		_, _ = fmt.Fprintln(tw, strings.Join(d, "\t"))
 	}
-	tw.Flush()
+	_ = tw.Flush()
 }

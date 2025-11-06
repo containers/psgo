@@ -8,27 +8,29 @@ on:
       - release-*
   pull_request:
 
-jobs:
+env:
+  LINT_VERSION: v2.6.1
 
+jobs:
   lint:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 2
-    - uses: actions/setup-go@v5
+    - uses: actions/setup-go@v6
     - name: lint
-      uses: golangci/golangci-lint-action@v4
+      uses: golangci/golangci-lint-action@v8
       with:
         version: "${{ env.LINT_VERSION }}"
         args: --verbose
 
   codespell:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: install deps
       # Version of codespell bundled with Ubuntu is way old, so use pip.
-      run: pip install codespell
+      run: pip install --break-system-packages codespell
     - name: run codespell
       run: codespell --dictionary=-
