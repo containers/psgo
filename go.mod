@@ -1,12 +1,12 @@
 module github.com/containers/psgo
 
-go 1.24.0
+go 1.25.0
 
 require (
-	github.com/moby/sys/user v0.4.0
+	github.com/moby/sys/user v0.4.1
 	github.com/stretchr/testify v1.11.1
-	go.podman.io/storage v1.61.0
-	golang.org/x/sys v0.40.0
+	go.podman.io/storage v1.64.0
+	golang.org/x/sys v0.47.0
 )
 
 require (
@@ -15,6 +15,6 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/moby/sys/mountinfo v0.7.2 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/sirupsen/logrus v1.9.3 // indirect
+	github.com/sirupsen/logrus v1.9.4 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
