@@ -193,7 +193,9 @@ func (p *Pattern) match(path string) (bool, error) {
 }
 
 func (p *Pattern) compile() error {
-	regStr := "^"
+	var regStrBuilder strings.Builder
+	regStrBuilder.WriteString("^")
+
 	pattern := p.cleanedPattern
 	// Go through the pattern and convert it to a regexp.
 	// We use a scanner so we can support utf-8 chars.
@@ -222,46 +224,56 @@ func (p *Pattern) compile() error {
 
 				if scan.Peek() == scanner.EOF {
 					// is "**EOF" - to align with .gitignore just accept all
-					regStr += ".*"
+					regStrBuilder.WriteString(".*")
 				} else {
 					// is "**"
 					// Note that this allows for any # of /'s (even 0) because
 					// the .* will eat everything, even /'s
-					regStr += "(.*" + escSL + ")?"
+					regStrBuilder.WriteString("(.*")
+					regStrBuilder.WriteString(escSL)
+					regStrBuilder.WriteString(")?")
 				}
 			} else {
 				// is "*" so map it to anything but "/"
-				regStr += "[^" + escSL + "]*"
+				regStrBuilder.WriteString("[^")
+				regStrBuilder.WriteString(escSL)
+				regStrBuilder.WriteString("]*")
 			}
 		} else if ch == '?' {
 			// "?" is any char except "/"
-			regStr += "[^" + escSL + "]"
+			regStrBuilder.WriteString("[^")
+			regStrBuilder.WriteString(escSL)
+			regStrBuilder.WriteString("]")
 		} else if ch == '.' || ch == '$' {
 			// Escape some regexp special chars that have no meaning
 			// in golang's filepath.Match
-			regStr += bs + string(ch)
+			regStrBuilder.WriteString(bs)
+			regStrBuilder.WriteRune(ch)
 		} else if ch == '\\' {
 			// escape next char.
 			if sl == bs {
 				// On windows map "\" to "\\", meaning an escaped backslash,
 				// and then just continue because filepath.Match on
 				// Windows doesn't allow escaping at all
-				regStr += escSL
+				regStrBuilder.WriteString(escSL)
 				continue
 			}
 			if scan.Peek() != scanner.EOF {
-				regStr += bs + string(scan.Next())
+				regStrBuilder.WriteString(bs)
+				regStrBuilder.WriteRune(scan.Next())
 			} else {
 				return filepath.ErrBadPattern
 			}
 		} else {
-			regStr += string(ch)
+			regStrBuilder.WriteRune(ch)
 		}
 	}
 
-	regStr += "(" + escSL + ".*)?$"
+	regStrBuilder.WriteString("(")
+	regStrBuilder.WriteString(escSL)
+	regStrBuilder.WriteString(".*)?$")
 
-	re, err := regexp.Compile(regStr)
+	re, err := regexp.Compile(regStrBuilder.String())
 	if err != nil {
 		return err
 	}
@@ -285,6 +297,50 @@ func Matches(file string, patterns []string) (bool, error) {
 	}
 
 	return pm.IsMatch(file)
+}
+
+// ShouldDescendExcludedDir checks whether an excluded directory should still be
+// descended into because a negation pattern might match files under it.
+// It handles literal prefix matches (e.g. !cmd/main.go for dir "cmd") and
+// wildcard negations (e.g. !**/*.go, !*/*.go). The wildcard check extracts
+// the literal prefix before the first wildcard and may intentionally
+// overmatch (descend into directories that won't ultimately contain matches),
+// which is safe because actual file-level matching happens later.
+func (pm *PatternMatcher) ShouldDescendExcludedDir(dirPath string) bool {
+	if !pm.exclusions {
+		return false
+	}
+	dir := filepath.ToSlash(strings.Trim(dirPath, string(os.PathSeparator)))
+	for _, pattern := range pm.patterns {
+		if !pattern.Exclusion() {
+			continue
+		}
+		slashPattern := filepath.ToSlash(strings.Trim(pattern.String(), string(os.PathSeparator)))
+
+		// Literal-prefix check: the negation spec starts with this
+		// directory path, for example: !cmd/main.go matches dir "cmd"
+		if strings.HasPrefix(slashPattern, dir+"/") {
+			return true
+		}
+
+		// Wildcard-aware check: extract the literal prefix before
+		// the first wildcard character (*, ?, [), for example: !cmd/**/*.go matches dir "cmd"
+		// if the directory is at or under that literal prefix, a file beneath this
+		// directory could match the negation, so keep descending.
+		if firstWild := strings.IndexAny(slashPattern, "*?["); firstWild >= 0 {
+			var literalPrefix string
+			if idx := strings.LastIndex(slashPattern[:firstWild], "/"); idx >= 0 {
+				literalPrefix = slashPattern[:idx]
+			}
+			if literalPrefix == "" {
+				return true
+			}
+			if dir == literalPrefix || strings.HasPrefix(dir, literalPrefix+"/") {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // CopyFile copies from src to dst until either EOF is reached
