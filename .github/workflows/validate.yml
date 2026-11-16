@@ -9,7 +9,7 @@ on:
   pull_request:
 
 env:
-  LINT_VERSION: v2.6.1
+  LINT_VERSION: v2.15.0
 
 jobs:
   lint:
