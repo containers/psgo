@@ -9,7 +9,7 @@ on:
   pull_request:
 
 env:
-  LINT_VERSION: v2.6.1
+  LINT_VERSION: v2.15.0
 
 jobs:
   lint:
@@ -19,6 +19,8 @@ jobs:
       with:
         fetch-depth: 2
     - uses: actions/setup-go@v6
+      with:
+        go-version: stable
     - name: lint
       uses: golangci/golangci-lint-action@v8
       with:
