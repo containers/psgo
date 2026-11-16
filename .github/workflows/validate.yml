@@ -19,6 +19,8 @@ jobs:
       with:
         fetch-depth: 2
     - uses: actions/setup-go@v6
+      with:
+        go-version: stable
     - name: lint
       uses: golangci/golangci-lint-action@v8
       with:
